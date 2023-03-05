@@ -1,27 +1,26 @@
 package com.neptuneg.plugins
 
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import kotlinx.serialization.Serializable
-import kotlinx.coroutines.*
-import java.sql.*
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import kotlinx.coroutines.Dispatchers
-import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.sql.*
 
 fun Application.configureDatabases() {
-    
     val database = Database.connect(
-            url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-            user = "root",
-            driver = "org.h2.Driver",
-            password = ""
-        )
+        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
+        user = "root",
+        driver = "org.h2.Driver",
+        password = ""
+    )
     val dbConnection: Connection = connectToPostgres(embedded = true)
     val cityService = CityService(dbConnection)
     val userService = UserService(database)
@@ -86,6 +85,7 @@ fun Application.configureDatabases() {
         }
     }
 }
+
 /**
  * Makes a connection to a Postgres database.
  *
@@ -119,6 +119,7 @@ fun Application.connectToPostgres(embedded: Boolean): Connection {
         return DriverManager.getConnection(url, user, password)
     }
 }
+
 @Serializable
 data class City(val name: String, val population: Int)
 class CityService(private val connection: Connection) {
@@ -129,7 +130,6 @@ class CityService(private val connection: Connection) {
         private const val INSERT_CITY = "INSERT INTO cities (name, population) VALUES (?, ?)"
         private const val UPDATE_CITY = "UPDATE cities SET name = ?, population = ? WHERE id = ?"
         private const val DELETE_CITY = "DELETE FROM cities WHERE id = ?"
-
     }
 
     init {
@@ -185,6 +185,7 @@ class CityService(private val connection: Connection) {
         statement.executeUpdate()
     }
 }
+
 @Serializable
 data class User(val name: String, val age: Int)
 class UserService(private val database: Database) {
