@@ -1,4 +1,4 @@
-package com.neptuneg.sample
+package com.neptuneg.usecase.inputport
 
 interface Sample {
     fun foobar(): String
