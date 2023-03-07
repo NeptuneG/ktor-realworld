@@ -14,6 +14,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
 
+@Suppress("ThrowsCount")
 fun Routing.user() {
     route("/users") {
         val userUseCase by inject<UserUseCase>()

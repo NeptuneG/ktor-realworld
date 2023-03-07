@@ -1,0 +1,9 @@
+server:
+  port: 8080
+database:
+  host: "0.0.0.0"
+  port: 5432
+  database: "realworld"
+  user: "user"
+  password: "password"
+
