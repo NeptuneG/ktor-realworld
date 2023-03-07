@@ -1,7 +1,7 @@
 package com.neptuneg.adaptor.web
 
-import com.neptuneg.adaptor.web.controller.setupMonitoringRouting
 import com.neptuneg.adaptor.web.controller.sample
+import com.neptuneg.adaptor.web.controller.setupMonitoringRouting
 import com.neptuneg.adaptor.web.controller.user
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application

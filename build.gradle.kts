@@ -8,6 +8,7 @@ val prometeusVersion = "1.6.3"
 val koinVersion = "3.3.3"
 val koinKtorVersion = "3.3.1"
 val hopliteVersion = "2.7.2"
+val hikariCPVersion = "5.0.1"
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -30,27 +31,33 @@ repositories {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
-    implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("com.h2database:h2:$h2Version")
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("com.h2database:h2:$h2Version")
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
-    implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
+
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinKtorVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinKtorVersion")
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
+
+    implementation("org.postgresql:postgresql:$postgresVersion")
+    implementation("com.h2database:h2:$h2Version")
+
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
+
+    implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
+
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
     implementation("com.sksamuel.hoplite:hoplite-core:$hopliteVersion")
     implementation("com.sksamuel.hoplite:hoplite-yaml:$hopliteVersion")
-    testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-    testImplementation("io.insert-koin:koin-test:$koinVersion")
 }
 
 tasks {

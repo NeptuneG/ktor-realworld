@@ -1,9 +1,7 @@
 server:
   port: 8080
 database:
-  host: "0.0.0.0"
-  port: 5432
-  database: "realworld"
-  user: "user"
+  jdbc_url: "jdbc:postgresql://0.0.0.0:5432/realworld"
+  username: "user"
   password: "password"
-
+  driver_class_name: "org.postgresql.Driver"
