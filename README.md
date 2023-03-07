@@ -18,3 +18,18 @@
 ## Architecture
 
 - [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+
+## References
+
+- [JVMのtargetエラーが出ました](https://www.techback.info/kotlin-jvm-error/)
+  - Additionally, the following snippet is also required in `build.gradle.kts`
+  ```kotlin
+  tasks {
+    compileKotlin {
+        kotlinOptions.jvmTarget = "17"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "17"
+    }
+  }
+  ```

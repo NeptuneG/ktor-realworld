@@ -2,13 +2,17 @@ package com.neptuneg
 
 import com.neptuneg.adaptor.database.DatabaseManager
 import com.neptuneg.adaptor.web.Server
+import com.neptuneg.config.Config
+import com.sksamuel.hoplite.ConfigLoaderBuilder
+import com.sksamuel.hoplite.addResourceSource
 
 fun main() {
-    DatabaseManager.connect(
-        database = System.getenv("REALWORLD_DATABASE_NAME"),
-        user = System.getenv("REALWORLD_DATABASE_USER"),
-        password = System.getenv("REALWORLD_DATABASE_PASSWORD")
-    )
+    val config = ConfigLoaderBuilder.default()
+        .addResourceSource("/config.yaml")
+        .build()
+        .loadConfigOrThrow<Config>()
+
+    DatabaseManager.connect(config.database)
     DatabaseManager.migrate()
-    Server.serve(8080)
+    Server.serve(config.server.port)
 }

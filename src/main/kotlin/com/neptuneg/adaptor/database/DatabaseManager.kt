@@ -4,20 +4,15 @@ import com.neptuneg.adaptor.database.gateway.table.UserTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import com.neptuneg.config.Database as DatabaseConfig
 
 object DatabaseManager {
-    fun connect(
-        host: String = "0.0.0.0",
-        port: Int = 5432,
-        database: String,
-        user: String,
-        password: String
-    ) {
+    fun connect(config: DatabaseConfig) {
         Database.connect(
-            url = "jdbc:postgresql://$host:$port/$database",
+            url = "jdbc:postgresql://${config.host}:${config.port}/${config.database}",
             driver = "org.postgresql.Driver",
-            user = user,
-            password = password,
+            user = config.user,
+            password = config.password,
         )
     }
 
