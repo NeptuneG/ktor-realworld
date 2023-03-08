@@ -7,9 +7,6 @@ import com.neptuneg.config.Config
 fun main() {
     val config = Config.buildFromYamlResource("/config.yaml")
 
-    DatabaseManager(config.database).apply {
-        connect()
-        migrate()
-    }
+    DatabaseManager.connect(config.database)
     Server.serve(config.server.port)
 }
