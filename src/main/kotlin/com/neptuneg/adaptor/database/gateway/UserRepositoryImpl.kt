@@ -17,24 +17,37 @@ class UserRepositoryImpl : UserRepository {
 
     override suspend fun create(user: User): Int = dbQuery {
         UserTable.insert {
-            it[name] = user.name
-            it[age] = user.age
+            it[username] = user.username
+            it[email] = user.email
+            it[password] = user.password
+            it[bio] = user.bio
+            it[image] = user.image
         }[UserTable.id]
     }
 
     override suspend fun read(id: Int): User? {
         return dbQuery {
             UserTable.select { UserTable.id eq id }
-                .map { User(it[UserTable.name], it[UserTable.age]) }
-                .singleOrNull()
+                .map {
+                    User(
+                        it[UserTable.username],
+                        it[UserTable.email],
+                        it[UserTable.password],
+                        it[UserTable.bio],
+                        it[UserTable.image],
+                    )
+                }.singleOrNull()
         }
     }
 
     override suspend fun update(id: Int, user: User) {
         dbQuery {
             UserTable.update({ UserTable.id eq id }) {
-                it[name] = user.name
-                it[age] = user.age
+                it[username] = user.username
+                it[email] = user.email
+                it[password] = user.password
+                it[bio] = user.bio
+                it[image] = user.image
             }
         }
     }
