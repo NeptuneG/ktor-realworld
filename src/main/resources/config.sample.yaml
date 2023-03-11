@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8000
 database:
   jdbc_url: "jdbc:postgresql://0.0.0.0:5432/realworld"
   username: "user"
