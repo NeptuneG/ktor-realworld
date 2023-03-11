@@ -1,5 +1,6 @@
 package com.neptuneg.adaptor.database.gateway.table
 
+import com.neptuneg.adaptor.database.gateway.util.datetimeWithTZ
 import org.jetbrains.exposed.sql.Table
 
 @Suppress("MagicNumber")
@@ -10,6 +11,6 @@ object UserTable : Table("users") {
     val password = varchar("password", 255)
     val bio = varchar("bio", 255).nullable()
     val image = varchar("image", 255).nullable()
-//    val createdAt: Any = TODO("Complete the datetime's ORM")
-//    val updatedAt: Any = TODO("Complete the datetime's ORM")
+    val createdAt = datetimeWithTZ("created_at")
+    val updatedAt = datetimeWithTZ("updated_at")
 }

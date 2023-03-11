@@ -35,6 +35,8 @@ class UserRepositoryImpl : UserRepository {
                         it[UserTable.password],
                         it[UserTable.bio],
                         it[UserTable.image],
+                        it[UserTable.createdAt],
+                        it[UserTable.updatedAt],
                     )
                 }.singleOrNull()
         }
