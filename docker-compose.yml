@@ -5,7 +5,8 @@ services:
     image: flyway/flyway
     command: migrate
     volumes:
-      - ./db/migration:/flyway/sql
+      - ./flyway/conf:/flyway/conf
+      - ./flyway/sql:/flyway/sql
     depends_on:
       - postgres
   postgres:
