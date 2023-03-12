@@ -20,16 +20,17 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
   keycloak:
-    image: bitnami/keycloak
+    image: quay.io/keycloak/keycloak
     ports:
       - "8080:8080"
+    command: start-dev
     environment:
-      KEYCLOAK_DATABASE_HOST: postgres
-      KEYCLOAK_DATABASE_NAME: keycloak
-      KEYCLOAK_DATABASE_USER: admin
-      KEYCLOAK_DATABASE_PASSWORD: password
-      KEYCLOAK_ADMIN_USER: admin
-      KEYCLOAK_ADMIN_PASSWORD: Pa55w0rd
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     depends_on:
       - postgres
 volumes:
