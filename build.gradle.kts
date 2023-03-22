@@ -19,6 +19,7 @@ plugins {
     id("io.ktor.plugin") version "2.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
     id("io.gitlab.arturbosch.detekt") version "1.22.0"
+    id("org.openapi.generator") version "6.3.0"
 }
 
 group = "com.neptuneg"
@@ -78,4 +79,18 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "17"
     }
+}
+
+openApiGenerate {
+    generatorName.set("kotlin")
+    inputSpec.set("$rootDir/spec/openapi.yml")
+    outputDir.set("$rootDir/gen")
+    apiPackage.set("$group.autogen.api")
+    invokerPackage.set("$group.autogen.invoker")
+    modelPackage.set("$group.autogen.model")
+    configOptions.set(mapOf("dateLibrary" to "java8"))
+}
+
+sourceSets.main {
+    java.srcDirs("$rootDir/gen/src/main/kotlin/com/neptuneg/autogen/model")
 }
