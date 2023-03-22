@@ -40,3 +40,6 @@ out/
 
 /src/main/resources/config.yaml
 /flyway/conf/flyway.conf
+.env
+
+exported-keycloak-realm
