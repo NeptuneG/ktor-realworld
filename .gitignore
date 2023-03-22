@@ -34,5 +34,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Fleet ###
+.fleet/
+
 /src/main/resources/config.yaml
-/db/flyway.conf
+/flyway/conf/flyway.conf
+.env
+
+exported-keycloak-realm

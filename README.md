@@ -33,3 +33,8 @@
     }
   }
   ```
+
+  - To export Keycloak realm's settings
+  ```bash
+  docker-compose exec keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --realm real-world
+  ```

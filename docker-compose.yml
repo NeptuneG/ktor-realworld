@@ -5,7 +5,8 @@ services:
     image: flyway/flyway
     command: migrate
     volumes:
-      - ./db/migration:/flyway/sql
+      - ./flyway/conf:/flyway/conf
+      - ./flyway/sql:/flyway/sql
     depends_on:
       - postgres
   postgres:
@@ -13,10 +14,26 @@ services:
     environment:
       POSTGRES_USER: "admin"
       POSTGRES_PASSWORD: "password"
-      POSTGRES_DB: "development"
     ports:
-      - "5432:5432"
+      - ${POSTGRES_PORT:-5432}:5432
     volumes:
+      - ./initdb:/docker-entrypoint-initdb.d
       - db_data:/var/lib/postgresql/data
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    ports:
+      - ${KEYCLOAK_PORT:-8080}:8080
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak-realm-settings:/opt/keycloak/data/import
+    depends_on:
+      - postgres
 volumes:
   db_data:

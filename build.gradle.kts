@@ -10,6 +10,8 @@ object versions {
     const val koinKtor = "3.3.1"
     const val hoplite = "2.7.2"
     const val hikariCP = "5.0.1"
+    const val auth0Jwt = "4.3.0"
+    const val keycloak = "21.0.1"
 }
 
 plugins {
@@ -39,7 +41,14 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-netty-jvm:${versions.ktor}")
+    implementation("io.ktor:ktor-server-auth:${versions.ktor}")
+    implementation("io.ktor:ktor-server-auth-jwt:${versions.ktor}")
+    implementation("io.ktor:ktor-client-apache:${versions.ktor}")
+    implementation("io.ktor:ktor-server-sessions:${versions.ktor}")
     testImplementation("io.ktor:ktor-server-tests-jvm:${versions.ktor}")
+
+    implementation("com.auth0:java-jwt:${versions.auth0Jwt}")
+    implementation("org.keycloak:keycloak-admin-client:${versions.keycloak}")
 
     implementation("io.insert-koin:koin-core:${versions.koin}")
     implementation("io.insert-koin:koin-ktor:${versions.koinKtor}")
