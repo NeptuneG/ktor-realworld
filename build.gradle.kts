@@ -13,6 +13,7 @@ object versions {
     const val auth0Jwt = "4.3.0"
     const val keycloak = "21.0.1"
     const val moshi = "1.13.0"
+    const val okhttp = "4.10.0"
 }
 
 plugins {
@@ -52,6 +53,8 @@ dependencies {
 
     implementation("com.squareup.moshi:moshi-kotlin:${versions.moshi}")
     implementation("com.squareup.moshi:moshi-adapters:${versions.moshi}")
+
+    implementation("com.squareup.okhttp3:okhttp:${versions.okhttp}")
 
     implementation("io.insert-koin:koin-core:${versions.koin}")
     implementation("io.insert-koin:koin-ktor:${versions.koinKtor}")

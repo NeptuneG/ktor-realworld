@@ -4,11 +4,11 @@ import com.auth0.jwk.UrlJwkProvider
 import com.neptuneg.adaptor.web.controller.sample
 import com.neptuneg.adaptor.web.controller.setupMonitoringRouting
 import com.neptuneg.adaptor.web.controller.user
+import com.squareup.moshi.Moshi
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.http.*
+import io.ktor.serialization.*
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -23,6 +23,14 @@ import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
+import com.neptuneg.domain.entity.serializer.Serializer
+import io.ktor.http.content.*
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.slf4j.event.Level
 import java.net.URI
 import com.neptuneg.config.Keycloak as KeycloakConfig
@@ -30,7 +38,7 @@ import com.neptuneg.config.Server as ServerConfig
 
 fun Application.installGenerals() {
     install(ContentNegotiation) {
-        json()
+        moshi()
     }
     install(CallLogging) {
         level = Level.INFO
@@ -47,8 +55,8 @@ fun Application.installAuth(keycloakConfig: KeycloakConfig) {
 fun AuthenticationConfig.setupOAuth(keycloakConfig: KeycloakConfig) {
     val keycloakOAuthProvider = OAuthServerSettings.OAuth2ServerSettings(
         name = "keycloak",
-        authorizeUrl = keycloakConfig.authorizeUrl,
-        accessTokenUrl = keycloakConfig.accessTokenUrl,
+        authorizeUrl = keycloakConfig.authorizationEndpoint,
+        accessTokenUrl = keycloakConfig.tokenEndpoint,
         clientId = keycloakConfig.clientId,
         clientSecret = keycloakConfig.clientSecret,
         requestMethod = HttpMethod.Post,
@@ -85,6 +93,39 @@ fun Application.setupRouting() {
     routing {
         sample()
         user()
+    }
+}
+fun Configuration.moshi(
+    contentType: ContentType = ContentType.Application.Json,
+    block: Moshi.Builder.() -> Unit = {}
+) {
+    val builder = Serializer.moshiBuilder.apply(block)
+    val converter = MoshiConverter(builder.build())
+    register(contentType, converter)
+}
+
+class MoshiConverter(private val moshi: Moshi) : ContentConverter {
+    override suspend fun serializeNullable(
+        contentType: ContentType,
+        charset: Charset,
+        typeInfo: TypeInfo,
+        value: Any?
+    ): OutgoingContent? {
+        if (value == null) {
+            return null
+        }
+        return TextContent(
+            moshi.adapter(value.javaClass).toJson(value),
+            contentType.withCharsetIfNeeded(charset)
+        )
+    }
+
+    override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
+        return withContext(Dispatchers.IO) {
+            val body = content.toInputStream().reader(charset).buffered().use { it.readText() }
+            if (body.isEmpty()) throw JsonConvertException("Empty Json data")
+            moshi.adapter(typeInfo.type.java).fromJson(body)
+        }
     }
 }
 

@@ -14,8 +14,9 @@ data class Keycloak(
 ) {
     val jwtIssuer: String = "$host/realms/$realm"
     val jwksUri: String = "$host/realms/$realm/protocol/openid-connect/certs"
-    val authorizeUrl: String = "$host/realms/$realm/protocol/openid-connect/auth"
-    val accessTokenUrl: String = "$host/realms/$realm/protocol/openid-connect/token"
+    val authorizationEndpoint: String = "$host/realms/$realm/protocol/openid-connect/auth"
+    val tokenEndpoint: String = "$host/realms/$realm/protocol/openid-connect/token"
+    val userinfoEndpoint: String = "$host/realms/$realm/protocol/openid-connect/userinfo"
 }
 
 data class Server(
