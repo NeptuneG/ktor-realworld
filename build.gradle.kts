@@ -12,13 +12,15 @@ object versions {
     const val hikariCP = "5.0.1"
     const val auth0Jwt = "4.3.0"
     const val keycloak = "21.0.1"
+    const val moshi = "1.13.0"
+    const val okhttp = "4.10.0"
 }
 
 plugins {
     kotlin("jvm") version "1.8.10"
     id("io.ktor.plugin") version "2.2.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
     id("io.gitlab.arturbosch.detekt") version "1.22.0"
+    id("org.openapi.generator") version "6.3.0"
 }
 
 group = "com.neptuneg"
@@ -35,7 +37,6 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-call-logging-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-core-jvm:${versions.ktor}")
@@ -49,6 +50,11 @@ dependencies {
 
     implementation("com.auth0:java-jwt:${versions.auth0Jwt}")
     implementation("org.keycloak:keycloak-admin-client:${versions.keycloak}")
+
+    implementation("com.squareup.moshi:moshi-kotlin:${versions.moshi}")
+    implementation("com.squareup.moshi:moshi-adapters:${versions.moshi}")
+
+    implementation("com.squareup.okhttp3:okhttp:${versions.okhttp}")
 
     implementation("io.insert-koin:koin-core:${versions.koin}")
     implementation("io.insert-koin:koin-ktor:${versions.koinKtor}")
@@ -78,4 +84,18 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "17"
     }
+}
+
+openApiGenerate {
+    generatorName.set("kotlin")
+    inputSpec.set("$rootDir/spec/openapi.yml")
+    outputDir.set("$rootDir/gen")
+    apiPackage.set("$group.autogen.api")
+    invokerPackage.set("$group.autogen.invoker")
+    modelPackage.set("$group.autogen.model")
+    configOptions.set(mapOf("dateLibrary" to "java8"))
+}
+
+sourceSets.main {
+    java.srcDirs("$rootDir/gen/src/main/kotlin/com/neptuneg/autogen/model")
 }

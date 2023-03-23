@@ -3,7 +3,7 @@ package com.neptuneg.config
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource
 
-data class Keycloak(
+data class KeycloakConfig(
     val host: String,
     val realm: String,
     val clientId: String,
@@ -14,16 +14,17 @@ data class Keycloak(
 ) {
     val jwtIssuer: String = "$host/realms/$realm"
     val jwksUri: String = "$host/realms/$realm/protocol/openid-connect/certs"
-    val authorizeUrl: String = "$host/realms/$realm/protocol/openid-connect/auth"
-    val accessTokenUrl: String = "$host/realms/$realm/protocol/openid-connect/token"
+    val authorizationEndpoint: String = "$host/realms/$realm/protocol/openid-connect/auth"
+    val tokenEndpoint: String = "$host/realms/$realm/protocol/openid-connect/token"
+    val userinfoEndpoint: String = "$host/realms/$realm/protocol/openid-connect/userinfo"
 }
 
-data class Server(
+data class ServerConfig(
     val port: Int,
-    val keycloak: Keycloak,
+    val keycloak: KeycloakConfig,
 )
 
-data class Database(
+data class DatabaseConfig(
     val jdbcUrl: String,
     val username: String,
     val password: String,
@@ -31,8 +32,8 @@ data class Database(
 )
 
 data class Config(
-    val server: Server,
-    val database: Database
+    val server: ServerConfig,
+    val database: DatabaseConfig
 ) {
     companion object {
         fun buildFromYamlResource(resource: String): Config {

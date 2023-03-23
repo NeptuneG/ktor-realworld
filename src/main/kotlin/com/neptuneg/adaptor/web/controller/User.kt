@@ -1,6 +1,10 @@
 package com.neptuneg.adaptor.web.controller
 
 import com.auth0.jwt.interfaces.Payload
+import com.neptuneg.adaptor.web.presenter.buildUserViewModel
+import com.neptuneg.autogen.model.CreateUserRequest
+import com.neptuneg.autogen.model.LoginRequest
+import com.neptuneg.autogen.model.UpdateUser
 import com.neptuneg.domain.entity.User
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
@@ -25,56 +29,58 @@ fun Routing.user() {
         val userUseCase by inject<UserUseCase>()
 
         post {
-            val user = call.receive<User>()
-            val token = userUseCase.create(user)
-            val response = mapOf(
-                "user" to mapOf(
-                    "email" to user.email,
-                    "token" to token,
-                    "username" to user.username,
-                    "bio" to user.bio,
-                    "image" to user.image,
-                )
+            val request = call.receive<CreateUserRequest>()
+            val user = userUseCase.create(
+                User(email = request.user.email, username = request.user.username),
+                request.user.password
+            ).getOrThrow()
+            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
+
+            call.respond(
+                HttpStatusCode.Created,
+                buildUserViewModel(user, token)
             )
-            call.respond(HttpStatusCode.Created, response)
         }
 
         post("/login") {
-            val user = call.receive<User>()
-            val token = userUseCase.requestToken(user)
-            val response = mapOf(
-                "user" to mapOf(
-                    "email" to user.email,
-                    "token" to token,
-                    "username" to user.username,
-                    "bio" to user.bio,
-                    "image" to user.image,
-                )
+            val request = call.receive<LoginRequest>()
+            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
+            val user = userUseCase.read(token).getOrThrow()
+            call.respond(
+                HttpStatusCode.OK,
+                buildUserViewModel(user, token)
             )
-            call.respond(HttpStatusCode.Created, response)
         }
 
         authenticate("keycloakJWT") {
             get {
-                val payload = call.payload
                 val token = call.accessToken!!
-                val user = mapOf(
-                    "user" to mapOf(
-                        "email" to payload.getClaim("email").asString(),
-                        "token" to token,
-                        "username" to payload.getClaim("preferred_username").asString(),
-                        "bio" to payload.getClaim("bio").asString(),
-                        "image" to payload.getClaim("image").asString(),
-                    )
+                val user = userUseCase.read(token).getOrThrow()
+                call.respond(
+                    HttpStatusCode.OK,
+                    buildUserViewModel(user, token)
                 )
-                call.respond(HttpStatusCode.OK, user)
             }
 
             put {
-                val user = call.receive<User>()
+                val updateUser = call.receive<UpdateUser>()
                 val userId = call.userId
-                userUseCase.update(user, userId)
-                call.respond(HttpStatusCode.OK, user)
+                userUseCase.update(userId, UserUseCase.UserAttributes(
+                    email = updateUser.email,
+                    password = updateUser.password,
+                    username = updateUser.username,
+                    bio = updateUser.bio,
+                    image = updateUser.image
+                )).onSuccess {
+                    val token = call.accessToken!!
+                    val user = userUseCase.read(token).getOrThrow()
+                    call.respond(
+                        HttpStatusCode.OK,
+                        buildUserViewModel(user, token)
+                    )
+                }.onFailure {
+                    call.respond(HttpStatusCode.UnprocessableEntity)
+                }
             }
         }
     }
