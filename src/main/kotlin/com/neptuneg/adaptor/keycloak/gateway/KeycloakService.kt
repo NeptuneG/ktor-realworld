@@ -14,7 +14,7 @@ import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import java.rmi.UnexpectedException
 import javax.ws.rs.core.Response
-import com.neptuneg.config.Keycloak as KeycloakConfig
+import com.neptuneg.config.KeycloakConfig
 
 class KeycloakService(
     private val config: KeycloakConfig

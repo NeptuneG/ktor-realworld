@@ -33,8 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.event.Level
 import java.net.URI
-import com.neptuneg.config.Keycloak as KeycloakConfig
-import com.neptuneg.config.Server as ServerConfig
+import com.neptuneg.config.KeycloakConfig
+import com.neptuneg.config.ServerConfig
 
 fun Application.installGenerals() {
     install(ContentNegotiation) {
