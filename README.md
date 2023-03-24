@@ -6,6 +6,7 @@
 
 ## Dependencies
 
+- [Keycloaka](https://www.keycloak.org/)
 - [Ktor](https://github.com/ktorio/ktor)
 - [Koin](https://github.com/InsertKoinIO/koin)
 - [Moshi](https://github.com/square/moshi)
@@ -34,7 +35,7 @@
   }
   ```
 
-  - To export Keycloak realm's settings
-  ```bash
-  docker-compose exec keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --realm real-world
-  ```
+- To export Keycloak realm's settings
+```bash
+docker-compose exec keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --realm real-world
+```
