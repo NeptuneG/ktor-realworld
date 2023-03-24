@@ -66,6 +66,7 @@ dependencies {
     implementation("com.h2database:h2:${versions.h2}")
 
     implementation("org.jetbrains.exposed:exposed-core:${versions.exposed}")
+    implementation("org.jetbrains.exposed:exposed-dao:${versions.exposed}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${versions.exposed}")
     implementation("com.zaxxer:HikariCP:${versions.hikariCP}")
 

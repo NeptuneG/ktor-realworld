@@ -1,5 +1,6 @@
 package com.neptuneg.usecase.inputport
 
 interface Sample {
-    fun foobar(): String
+    data class Message(val message: String)
+    fun foobar(): Message
 }

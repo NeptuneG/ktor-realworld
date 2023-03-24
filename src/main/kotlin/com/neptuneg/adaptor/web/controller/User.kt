@@ -1,11 +1,10 @@
 package com.neptuneg.adaptor.web.controller
 
 import com.auth0.jwt.interfaces.Payload
-import com.neptuneg.adaptor.web.presenter.buildUserViewModel
+import com.neptuneg.adaptor.web.presenter.UserViewModel
 import com.neptuneg.autogen.model.CreateUserRequest
 import com.neptuneg.autogen.model.LoginRequest
 import com.neptuneg.autogen.model.UpdateUser
-import com.neptuneg.domain.entity.User
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -22,6 +21,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
+import kotlin.reflect.full.memberProperties
 
 @Suppress("ThrowsCount")
 fun Routing.user() {
@@ -30,54 +30,36 @@ fun Routing.user() {
 
         post {
             val request = call.receive<CreateUserRequest>()
-            val user = userUseCase.create(
-                User(email = request.user.email, username = request.user.username),
-                request.user.password
-            ).getOrThrow()
+            val user = userUseCase.create(request.user.username, request.user.email, request.user.password).getOrThrow()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
 
             call.respond(
                 HttpStatusCode.Created,
-                buildUserViewModel(user, token)
+                UserViewModel(user, token)
             )
         }
 
         post("/login") {
             val request = call.receive<LoginRequest>()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-            val user = userUseCase.read(token).getOrThrow()
-            call.respond(
-                HttpStatusCode.OK,
-                buildUserViewModel(user, token)
-            )
+            val user = userUseCase.getByToken(token).getOrThrow()
+            call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
 
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
-                val user = userUseCase.read(token).getOrThrow()
-                call.respond(
-                    HttpStatusCode.OK,
-                    buildUserViewModel(user, token)
-                )
+                val user = userUseCase.getByToken(token).getOrThrow()
+                call.respond(HttpStatusCode.OK, UserViewModel(user, token))
             }
 
             put {
-                val updateUser = call.receive<UpdateUser>()
-                val userId = call.userId
-                userUseCase.update(userId, UserUseCase.UserAttributes(
-                    email = updateUser.email,
-                    password = updateUser.password,
-                    username = updateUser.username,
-                    bio = updateUser.bio,
-                    image = updateUser.image
-                )).onSuccess {
+                val userId = call.payload.subject
+                val userAttributes = call.receive<UpdateUser>().toMap()
+                userUseCase.update(userId, userAttributes).onSuccess {
                     val token = call.accessToken!!
-                    val user = userUseCase.read(token).getOrThrow()
-                    call.respond(
-                        HttpStatusCode.OK,
-                        buildUserViewModel(user, token)
-                    )
+                    val user = userUseCase.getByToken(token).getOrThrow()
+                    call.respond(HttpStatusCode.OK, UserViewModel(user, token))
                 }.onFailure {
                     call.respond(HttpStatusCode.UnprocessableEntity)
                 }
@@ -86,6 +68,7 @@ fun Routing.user() {
     }
 }
 
-val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
-val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
-val ApplicationCall.userId: String get() = payload.subject
+internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
+internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
+internal fun UpdateUser.toMap(): Map<String, String?> =
+    UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String?}

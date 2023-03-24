@@ -1,8 +1,20 @@
 package com.neptuneg.domain.entity
 
+import java.util.UUID
+
 data class User(
+    val id: UUID,
     val username: String,
     val email: String,
-    val bio: String? = null,
-    val image: String? = null,
-)
+    val bio: String = "",
+    val image: String = "",
+) {
+    fun buildProfile(isFollowing: Boolean): Profile {
+        return Profile(
+            username = username,
+            bio = bio,
+            image = image,
+            following = isFollowing
+        )
+    }
+}
