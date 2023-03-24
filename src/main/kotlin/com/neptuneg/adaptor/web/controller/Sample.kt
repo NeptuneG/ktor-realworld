@@ -14,13 +14,13 @@ fun Routing.sample() {
 
     route("/") {
         get {
-            call.respond(mapOf("message" to sample.foobar()))
+            call.respond(sample.foobar())
         }
     }
 
     authenticate("keycloakJWT") {
         get("/hello") {
-            call.respond(mapOf("message" to sample.foobar()))
+            call.respond(sample.foobar())
         }
     }
 }
