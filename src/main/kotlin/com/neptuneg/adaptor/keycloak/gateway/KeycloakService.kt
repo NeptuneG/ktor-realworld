@@ -1,20 +1,14 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
 import com.neptuneg.domain.entity.User
-import com.neptuneg.domain.entity.UserInfo
-import com.neptuneg.domain.entity.serializer.Serializer
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
-import java.rmi.UnexpectedException
 import javax.ws.rs.core.Response
 import com.neptuneg.config.KeycloakConfig
+import java.util.UUID
 
 class KeycloakService(
     private val config: KeycloakConfig
@@ -22,66 +16,47 @@ class KeycloakService(
     private val adminKeycloak = buildKeycloak(config.adminUsername, config.adminPassword)
     private val adminKeycloakRealm = adminKeycloak.realm(config.realm)
     private val adminKeycloakRealmUsers = adminKeycloakRealm.users()
-    private val userInfoEndpointUrl = config.userinfoEndpoint.toHttpUrl()
 
-    data class UserAttributes(
-        val email: String? = null,
-        val password: String? = null,
-        val username: String? = null,
-        val bio: String? = null,
-        val image: String? = null
-    )
-
-    companion object {
-        val client: OkHttpClient by lazy {
-            OkHttpClient.Builder().build()
-        }
-
-        fun authorizationGet(url: HttpUrl, bearerToken: String): okhttp3.Response {
-            val request = Request.Builder().url(url).get()
-                .addHeader("Authorization", "Bearer $bearerToken")
-                .build()
-            return client.newCall(request).execute()
-        }
-    }
-
-    fun createUser(user: User, password: String): Result<User> {
-        val userRepresentation = UserRepresentation().apply {
-            email = user.email
-            isEmailVerified = true
-            isEnabled = true
-            username = user.username
-            credentials = listOf(
-                CredentialRepresentation().apply {
-                    value = password
-                    type = CredentialRepresentation.PASSWORD
-                    isTemporary = false
-                }
-            )
-        }
+    fun createUser(username: String, email: String, password: String): Result<User> {
+        val userRepresentation = buildUserRepresentation(username, email, password)
         val response = adminKeycloakRealmUsers.create(userRepresentation)
 
         return if (response.statusInfo == Response.Status.CREATED) {
-            Result.success(user)
+            getUserByUsername(username)
         } else {
             Result.failure(Exception(response.statusInfo.reasonPhrase))
         }
     }
 
-    fun getUserInfo(token: String): Result<UserInfo> {
-        return runCatching {
-            authorizationGet(userInfoEndpointUrl, token).let { response ->
-                if (!response.isSuccessful) throw UnexpectedException("Unexpected code ${response.message}")
+    fun getUser(token: String): Result<User> {
+        return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUser() }
+    }
 
-                response.body?.let { Serializer.moshi.adapter(UserInfo::class.java).fromJson(it.source()) }
-            }!!
+    fun getUserByUsername(username: String): Result<User> {
+        return runCatching {
+            adminKeycloakRealmUsers.search(username).map { it.toUser() }.first()
         }
     }
 
-    fun updateUser(userId: String, userAttributes: UserAttributes): Result<Unit> {
+    fun updateUser(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
         return runCatching {
-            val userRepresentation = userAttributes.toUserRepresentation()
-            adminKeycloakRealmUsers.get(userId).update(userRepresentation)
+            val user = adminKeycloakRealmUsers.get(userId)
+            val userRepresentation = user.toRepresentation().apply {
+                userAttributes["username"]?.let { this.username = it }
+                userAttributes["email"]?.let { this.email = it }
+                userAttributes["password"]?.let { password ->
+                    this.credentials = listOf(
+                        CredentialRepresentation().apply {
+                            value = password
+                            type = CredentialRepresentation.PASSWORD
+                            isTemporary = false
+                        }
+                    )
+                }
+                userAttributes["bio"]?.let { this.singleAttribute("bio", it) }
+                userAttributes["image"]?.let { this.singleAttribute("image", it) }
+            }
+            user.update(userRepresentation)
         }
     }
 
@@ -97,24 +72,39 @@ class KeycloakService(
         .username(email).password(password).scope("openid")
         .build()
 
-    private fun UserAttributes.toUserRepresentation(): UserRepresentation {
-        val user = this
+    private fun buildUserRepresentation(username: String, email: String, password: String): UserRepresentation {
         return UserRepresentation().apply {
-            email = user.email
+            this.email = email
             isEmailVerified = true
             isEnabled = true
-            username = user.username
+            this.username = username
             credentials = listOf(
                 CredentialRepresentation().apply {
-                    value = user.password
+                    value = password
                     type = CredentialRepresentation.PASSWORD
                     isTemporary = false
                 }
             )
-            attributes = mapOf(
-                "bio" to listOf(user.bio),
-                "image" to listOf(user.image),
-            )
         }
+    }
+
+    private fun OAuthUserInfo.toUser(): User {
+        return User(
+            id = sub,
+            username = preferredUsername,
+            email = email,
+            bio = bio ?: "",
+            image = image ?: "",
+        )
+    }
+
+    private fun UserRepresentation.toUser(): User {
+        return User(
+            id = UUID.fromString(id),
+            username = username,
+            email = email,
+            bio = firstAttribute("bio") ?: "",
+            image = firstAttribute("image") ?: "",
+        )
     }
 }

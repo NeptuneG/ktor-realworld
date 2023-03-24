@@ -22,6 +22,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
+import kotlin.reflect.full.memberProperties
 
 @Suppress("ThrowsCount")
 fun Routing.user() {
@@ -30,11 +31,12 @@ fun Routing.user() {
 
         post {
             val request = call.receive<CreateUserRequest>()
-            val user = userUseCase.create(
-                User(email = request.user.email, username = request.user.username),
-                request.user.password
-            ).getOrThrow()
-            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
+            val user = userUseCase
+                .create(request.user.username, request.user.email, request.user.password)
+                .getOrThrow()
+            val token = userUseCase
+                .requestToken(request.user.email, request.user.password)
+                .getOrThrow()
 
             call.respond(
                 HttpStatusCode.Created,
@@ -59,13 +61,8 @@ fun Routing.user() {
             put {
                 val updateUser = call.receive<UpdateUser>()
                 val userId = call.subject
-                userUseCase.update(userId, UserUseCase.UserAttributes(
-                    email = updateUser.email,
-                    password = updateUser.password,
-                    username = updateUser.username,
-                    bio = updateUser.bio,
-                    image = updateUser.image
-                )).onSuccess {
+                val attributes = updateUser.toMap()
+                userUseCase.update(userId, attributes).onSuccess {
                     val token = call.accessToken!!
                     val user = userUseCase.read(token).getOrThrow()
                     call.respond(HttpStatusCode.OK, UserViewModel(user, token))
@@ -80,3 +77,5 @@ fun Routing.user() {
 internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
 internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
 internal val ApplicationCall.subject: String get() = payload.subject
+internal fun UpdateUser.toMap(): Map<String, String?> =
+    UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String?}

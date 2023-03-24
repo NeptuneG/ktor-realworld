@@ -11,8 +11,8 @@ object UserViewModel {
                 email = user.email,
                 token = token,
                 username = user.username,
-                bio = user.bio ?: "",
-                image = user.image ?: "",
+                bio = user.bio,
+                image = user.image,
             )
         )
     }
