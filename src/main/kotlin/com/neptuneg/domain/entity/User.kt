@@ -8,4 +8,13 @@ data class User(
     val email: String,
     val bio: String = "",
     val image: String = "",
-)
+) {
+    fun buildProfile(isFollowing: Boolean): Profile {
+        return Profile(
+            username = username,
+            bio = bio,
+            image = image,
+            following = isFollowing
+        )
+    }
+}

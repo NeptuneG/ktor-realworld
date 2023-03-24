@@ -11,8 +11,12 @@ class UserUseCaseImpl(
         return keycloakService.createUser(username, email, password)
     }
 
-    override suspend fun read(token: String): Result<User> {
+    override suspend fun getByToken(token: String): Result<User> {
         return keycloakService.getUser(token)
+    }
+
+    override suspend fun getByUsername(username: String): Result<User> {
+        return keycloakService.getUserByUsername(username)
     }
 
     override suspend fun update(userId: String, userAttributes: Map<String, String?>): Result<Unit> {

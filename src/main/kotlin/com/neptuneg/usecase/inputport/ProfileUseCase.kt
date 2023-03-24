@@ -4,7 +4,7 @@ import com.neptuneg.domain.entity.Profile
 import com.neptuneg.domain.entity.User
 
 interface ProfileUseCase {
-    suspend fun get(visitor: User?, username: String): Result<Profile>
-    suspend fun follow(visitor: User, username: String): Result<Profile>
-    suspend fun unfollow(visitor: User, username: String): Result<Profile>
+    suspend fun get(follower: User?, followee: User): Result<Profile>
+    suspend fun follow(follower: User, followee: User): Result<Profile>
+    suspend fun unfollow(follower: User, followee: User): Result<Profile>
 }

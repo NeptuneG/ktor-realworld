@@ -5,7 +5,6 @@ import com.neptuneg.adaptor.web.presenter.UserViewModel
 import com.neptuneg.autogen.model.CreateUserRequest
 import com.neptuneg.autogen.model.LoginRequest
 import com.neptuneg.autogen.model.UpdateUser
-import com.neptuneg.domain.entity.User
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -31,12 +30,8 @@ fun Routing.user() {
 
         post {
             val request = call.receive<CreateUserRequest>()
-            val user = userUseCase
-                .create(request.user.username, request.user.email, request.user.password)
-                .getOrThrow()
-            val token = userUseCase
-                .requestToken(request.user.email, request.user.password)
-                .getOrThrow()
+            val user = userUseCase.create(request.user.username, request.user.email, request.user.password).getOrThrow()
+            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
 
             call.respond(
                 HttpStatusCode.Created,
@@ -47,24 +42,23 @@ fun Routing.user() {
         post("/login") {
             val request = call.receive<LoginRequest>()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-            val user = userUseCase.read(token).getOrThrow()
+            val user = userUseCase.getByToken(token).getOrThrow()
             call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
 
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
-                val user = userUseCase.read(token).getOrThrow()
+                val user = userUseCase.getByToken(token).getOrThrow()
                 call.respond(HttpStatusCode.OK, UserViewModel(user, token))
             }
 
             put {
-                val updateUser = call.receive<UpdateUser>()
-                val userId = call.subject
-                val attributes = updateUser.toMap()
-                userUseCase.update(userId, attributes).onSuccess {
+                val userId = call.payload.subject
+                val userAttributes = call.receive<UpdateUser>().toMap()
+                userUseCase.update(userId, userAttributes).onSuccess {
                     val token = call.accessToken!!
-                    val user = userUseCase.read(token).getOrThrow()
+                    val user = userUseCase.getByToken(token).getOrThrow()
                     call.respond(HttpStatusCode.OK, UserViewModel(user, token))
                 }.onFailure {
                     call.respond(HttpStatusCode.UnprocessableEntity)
@@ -76,6 +70,5 @@ fun Routing.user() {
 
 internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
 internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
-internal val ApplicationCall.subject: String get() = payload.subject
 internal fun UpdateUser.toMap(): Map<String, String?> =
     UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String?}
