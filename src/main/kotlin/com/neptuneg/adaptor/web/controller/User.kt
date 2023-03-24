@@ -15,19 +15,19 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import org.koin.ktor.ext.inject
+import org.koin.java.KoinJavaComponent.getKoin
 import kotlin.reflect.full.memberProperties
 
 @Suppress("ThrowsCount")
-fun Routing.user() {
+fun Route.user(
+    userUseCase: UserUseCase = getKoin().get()
+) {
     route("/users") {
-        val userUseCase by inject<UserUseCase>()
-
         post {
             val request = call.receive<CreateUserRequest>()
             val user = userUseCase.create(request.user.username, request.user.email, request.user.password).getOrThrow()
@@ -45,7 +45,10 @@ fun Routing.user() {
             val user = userUseCase.getByToken(token).getOrThrow()
             call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
+    }
 
+
+    route("/user") {
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
@@ -71,4 +74,4 @@ fun Routing.user() {
 internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
 internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
 internal fun UpdateUser.toMap(): Map<String, String?> =
-    UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String?}
+    UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String? }

@@ -6,18 +6,18 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.UUID
 
-internal data class OAuthUserInfo(
-    val sub: UUID,
-    val email: String,
-    @Json(name = "email_verified")
-    val emailVerified: Boolean,
-    @Json(name = "preferred_username")
-    val preferredUsername: String,
-    val bio: String?,
-    val image: String?,
-)
-
 internal object OAuthClient {
+    data class OAuthUserInfo(
+        val sub: UUID,
+        val email: String,
+        @Json(name = "email_verified")
+        val emailVerified: Boolean,
+        @Json(name = "preferred_username")
+        val preferredUsername: String,
+        val bio: String?,
+        val image: String?,
+    )
+
     val client: OkHttpClient by lazy {
         OkHttpClient.Builder().build()
     }

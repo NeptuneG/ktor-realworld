@@ -3,19 +3,24 @@ package com.neptuneg.adaptor.web.controller
 import com.neptuneg.adaptor.web.presenter.ProfileViewModel
 import com.neptuneg.usecase.inputport.ProfileUseCase
 import com.neptuneg.usecase.inputport.UserUseCase
-import io.ktor.http.*
-import io.ktor.server.application.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.plugins.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.koin.ktor.ext.inject
+import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.response.respond
+import io.ktor.server.routing.route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.Route
+import org.koin.java.KoinJavaComponent.getKoin
 
-fun Routing.profile() {
+fun Route.profile(
+    profileUseCase: ProfileUseCase = getKoin().get(),
+    userUseCase: UserUseCase = getKoin().get()
+) {
     route("/profiles/{username}") {
-        val profileUseCase by inject<ProfileUseCase>()
-        val userUseCase by inject<UserUseCase>()
-
         authenticate("keycloakJWT", optional = true) {
             get {
                 val follower = call.accessToken?.let { userUseCase.getByToken(it).getOrThrow() }

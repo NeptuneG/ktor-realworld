@@ -7,23 +7,23 @@ import com.neptuneg.usecase.inputport.UserUseCase
 class UserUseCaseImpl(
     private val keycloakService: KeycloakService
 ) : UserUseCase {
-    override suspend fun create(username: String, email: String, password: String): Result<User> {
+    override fun create(username: String, email: String, password: String): Result<User> {
         return keycloakService.createUser(username, email, password)
     }
 
-    override suspend fun getByToken(token: String): Result<User> {
+    override fun getByToken(token: String): Result<User> {
         return keycloakService.getUser(token)
     }
 
-    override suspend fun getByUsername(username: String): Result<User> {
+    override fun getByUsername(username: String): Result<User> {
         return keycloakService.getUserByUsername(username)
     }
 
-    override suspend fun update(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
+    override fun update(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
         return keycloakService.updateUser(userId, userAttributes)
     }
 
-    override suspend fun requestToken(email: String, password: String): Result<String> {
+    override fun requestToken(email: String, password: String): Result<String> {
         return keycloakService.requestToken(email, password)
     }
 }

@@ -17,7 +17,7 @@ object Serializer {
         .add(BigIntegerAdapter())
 
     @JvmStatic
-    val moshi: Moshi by lazy {
-        moshiBuilder.build()
-    }
+    val moshi: Moshi by lazy { moshiBuilder.build() }
 }
+
+fun Any.toJson(): String = Serializer.moshi.adapter(javaClass).toJson(this)

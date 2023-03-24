@@ -1,5 +1,6 @@
 package com.neptuneg.adaptor.web
 
+import com.neptuneg.Server
 import com.neptuneg.adaptor.web.util.installAuthentication
 import com.neptuneg.adaptor.web.util.installCallLogging
 import com.neptuneg.adaptor.web.util.installContentNegotiation

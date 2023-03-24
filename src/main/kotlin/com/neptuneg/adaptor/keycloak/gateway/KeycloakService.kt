@@ -88,7 +88,7 @@ class KeycloakService(
         }
     }
 
-    private fun OAuthUserInfo.toUser(): User {
+    private fun OAuthClient.OAuthUserInfo.toUser(): User {
         return User(
             id = sub,
             username = preferredUsername,
