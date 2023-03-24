@@ -1,7 +1,7 @@
 package com.neptuneg.adaptor.web.controller
 
 import com.auth0.jwt.interfaces.Payload
-import com.neptuneg.adaptor.web.presenter.buildUserViewModel
+import com.neptuneg.adaptor.web.presenter.UserViewModel
 import com.neptuneg.autogen.model.CreateUserRequest
 import com.neptuneg.autogen.model.LoginRequest
 import com.neptuneg.autogen.model.UpdateUser
@@ -38,7 +38,7 @@ fun Routing.user() {
 
             call.respond(
                 HttpStatusCode.Created,
-                buildUserViewModel(user, token)
+                UserViewModel(user, token)
             )
         }
 
@@ -46,25 +46,19 @@ fun Routing.user() {
             val request = call.receive<LoginRequest>()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
             val user = userUseCase.read(token).getOrThrow()
-            call.respond(
-                HttpStatusCode.OK,
-                buildUserViewModel(user, token)
-            )
+            call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
 
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
                 val user = userUseCase.read(token).getOrThrow()
-                call.respond(
-                    HttpStatusCode.OK,
-                    buildUserViewModel(user, token)
-                )
+                call.respond(HttpStatusCode.OK, UserViewModel(user, token))
             }
 
             put {
                 val updateUser = call.receive<UpdateUser>()
-                val userId = call.userId
+                val userId = call.subject
                 userUseCase.update(userId, UserUseCase.UserAttributes(
                     email = updateUser.email,
                     password = updateUser.password,
@@ -74,10 +68,7 @@ fun Routing.user() {
                 )).onSuccess {
                     val token = call.accessToken!!
                     val user = userUseCase.read(token).getOrThrow()
-                    call.respond(
-                        HttpStatusCode.OK,
-                        buildUserViewModel(user, token)
-                    )
+                    call.respond(HttpStatusCode.OK, UserViewModel(user, token))
                 }.onFailure {
                     call.respond(HttpStatusCode.UnprocessableEntity)
                 }
@@ -86,6 +77,6 @@ fun Routing.user() {
     }
 }
 
-val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
-val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
-val ApplicationCall.userId: String get() = payload.subject
+internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
+internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
+internal val ApplicationCall.subject: String get() = payload.subject
