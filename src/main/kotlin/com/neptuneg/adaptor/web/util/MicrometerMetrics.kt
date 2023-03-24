@@ -1,4 +1,4 @@
-package com.neptuneg.adaptor.web.controller
+package com.neptuneg.adaptor.web.util
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -10,7 +10,7 @@ import io.ktor.server.routing.routing
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 
-fun Application.setupMonitoringRouting() {
+fun Application.installMicrometerMetrics() {
     val appMicrometerRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     install(MicrometerMetrics) {

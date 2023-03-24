@@ -1,8 +1,8 @@
 package com.neptuneg
 
 import com.neptuneg.adaptor.web.controller.sample
-import com.neptuneg.adaptor.web.installAuth
-import com.neptuneg.adaptor.web.installGenerals
+import com.neptuneg.adaptor.web.util.installAuthentication
+import com.neptuneg.adaptor.web.util.installContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -17,8 +17,8 @@ class ApplicationTest {
     fun testRoot() = testApplication {
         insertKoins()
         application {
-            installGenerals()
-            installAuth(getKoin().get())
+            installContentNegotiation()
+            installAuthentication(getKoin().get())
             routing {
                 sample()
             }
