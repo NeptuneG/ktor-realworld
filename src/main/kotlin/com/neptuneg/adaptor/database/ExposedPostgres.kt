@@ -1,7 +1,7 @@
 package com.neptuneg.adaptor.database
 
 import com.neptuneg.Database
-import com.neptuneg.config.DatabaseConfig
+import com.neptuneg.infrastructure.config.DatabaseConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database as ExposedDatabase

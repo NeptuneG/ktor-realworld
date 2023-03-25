@@ -7,7 +7,7 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import javax.ws.rs.core.Response
-import com.neptuneg.config.KeycloakConfig
+import com.neptuneg.infrastructure.config.KeycloakConfig
 import java.util.UUID
 
 class KeycloakService(

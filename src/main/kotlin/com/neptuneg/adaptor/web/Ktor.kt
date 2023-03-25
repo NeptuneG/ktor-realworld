@@ -6,7 +6,7 @@ import com.neptuneg.adaptor.web.util.installCallLogging
 import com.neptuneg.adaptor.web.util.installContentNegotiation
 import com.neptuneg.adaptor.web.util.installMicrometerMetrics
 import com.neptuneg.adaptor.web.util.installRouting
-import com.neptuneg.config.ServerConfig
+import com.neptuneg.infrastructure.config.ServerConfig
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 

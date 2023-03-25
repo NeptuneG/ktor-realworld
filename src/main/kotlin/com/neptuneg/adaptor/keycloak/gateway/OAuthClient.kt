@@ -1,6 +1,7 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
-import com.neptuneg.domain.entity.serializer.Serializer
+import com.neptuneg.infrastructure.exception.UnexpectedException
+import com.neptuneg.infrastructure.serializer.Serializer
 import com.squareup.moshi.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -28,7 +29,7 @@ internal object OAuthClient {
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
             client.newCall(request).execute().let { response ->
-                if (!response.isSuccessful) throw Exception(response.message)
+                if (!response.isSuccessful) throw UnexpectedException(response.message)
 
                 response.body?.let { Serializer.moshi.adapter(OAuthUserInfo::class.java).fromJson(it.source()) }
             }!!

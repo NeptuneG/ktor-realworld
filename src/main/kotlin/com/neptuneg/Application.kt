@@ -3,7 +3,7 @@ package com.neptuneg
 import com.neptuneg.adaptor.database.databaseKoins
 import com.neptuneg.adaptor.keycloak.keycloakKoins
 import com.neptuneg.adaptor.web.webKoins
-import com.neptuneg.config.configKoins
+import com.neptuneg.infrastructure.config.configKoins
 import com.neptuneg.usecase.useCaseKoins
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin

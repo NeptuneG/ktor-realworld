@@ -1,6 +1,6 @@
 package com.neptuneg.adaptor.web.util
 
-import com.neptuneg.domain.entity.serializer.Serializer
+import com.neptuneg.infrastructure.serializer.Serializer
 import com.squareup.moshi.Moshi
 import io.ktor.http.ContentType
 import io.ktor.http.withCharsetIfNeeded
