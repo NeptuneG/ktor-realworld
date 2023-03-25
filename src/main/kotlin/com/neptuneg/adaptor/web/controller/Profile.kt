@@ -14,13 +14,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.Route
-import org.koin.java.KoinJavaComponent.getKoin
+import org.koin.java.KoinJavaComponent.inject
 
 fun Route.profile(
-    profileUseCase: ProfileUseCase = getKoin().get(),
-    userUseCase: UserUseCase = getKoin().get()
 ) {
     route("/profiles/{username}") {
+        val profileUseCase: ProfileUseCase by inject(ProfileUseCase::class.java)
+        val userUseCase: UserUseCase by inject(UserUseCase::class.java)
+
         authenticate("keycloakJWT", optional = true) {
             get {
                 val follower = call.accessToken?.let { userUseCase.getByToken(it).getOrThrow() }

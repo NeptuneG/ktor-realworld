@@ -20,13 +20,13 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import org.koin.java.KoinJavaComponent.getKoin
 import kotlin.reflect.full.memberProperties
+import org.koin.java.KoinJavaComponent.inject
 
 @Suppress("ThrowsCount")
-fun Route.user(
-    userUseCase: UserUseCase = getKoin().get()
-) {
+fun Route.user() {
+    val userUseCase: UserUseCase by inject(UserUseCase::class.java)
+
     route("/users") {
         post {
             val request = call.receive<CreateUserRequest>()
