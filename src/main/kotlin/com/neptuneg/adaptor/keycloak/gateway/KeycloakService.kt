@@ -7,7 +7,7 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import javax.ws.rs.core.Response
-import com.neptuneg.config.KeycloakConfig
+import com.neptuneg.infrastructure.config.KeycloakConfig
 import java.util.UUID
 
 class KeycloakService(
@@ -88,7 +88,7 @@ class KeycloakService(
         }
     }
 
-    private fun OAuthUserInfo.toUser(): User {
+    private fun OAuthClient.OAuthUserInfo.toUser(): User {
         return User(
             id = sub,
             username = preferredUsername,

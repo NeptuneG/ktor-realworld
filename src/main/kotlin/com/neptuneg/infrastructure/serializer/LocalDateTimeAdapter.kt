@@ -1,4 +1,4 @@
-package com.neptuneg.domain.entity.serializer
+package com.neptuneg.infrastructure.serializer
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson

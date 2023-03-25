@@ -1,18 +1,13 @@
 package com.neptuneg.domain.entity
 
+import com.neptuneg.infrastructure.exception.ValidationException
 import java.util.UUID
 
 data class Following (
     val followerId: UUID,
     val followeeId: UUID,
 ) {
-    companion object {
-        fun new(followerId: UUID, followeeId: UUID): Following {
-            return if (followerId == followeeId) {
-                throw Exception("followerId can not be equal to followeeId")
-            } else {
-                Following(followerId, followeeId)
-            }
-        }
+    init {
+        if (followerId == followeeId) { throw ValidationException("followerId can not be equal to followeeId") }
     }
 }

@@ -1,4 +1,4 @@
-package com.neptuneg.config
+package com.neptuneg.infrastructure.config
 
 import org.koin.dsl.module
 
@@ -10,4 +10,3 @@ fun configKoins(resource: String) = module {
     single { config.server }
     single { config.server.keycloak }
 }
-

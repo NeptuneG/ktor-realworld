@@ -1,4 +1,4 @@
-package com.neptuneg.config
+package com.neptuneg.infrastructure.config
 
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource

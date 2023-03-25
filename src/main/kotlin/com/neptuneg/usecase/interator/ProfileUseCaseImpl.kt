@@ -9,10 +9,10 @@ import com.neptuneg.usecase.inputport.ProfileUseCase
 class ProfileUseCaseImpl(
     private val followingRepository: FollowingRepository,
 ): ProfileUseCase {
-    override suspend fun get(follower: User?, followee: User): Result<Profile> {
+    override fun get(follower: User?, followee: User): Result<Profile> {
         return runCatching {
             val isFollowing = follower?.let { follower ->
-                val following = Following.new(followerId = follower.id, followeeId = followee.id)
+                val following = Following(followerId = follower.id, followeeId = followee.id)
                 followingRepository.isExisting(following).getOrThrow()
             } ?: false
 
@@ -20,17 +20,17 @@ class ProfileUseCaseImpl(
         }
     }
 
-    override suspend fun follow(follower: User, followee: User): Result<Profile> {
+    override fun follow(follower: User, followee: User): Result<Profile> {
         return runCatching {
-            val following = Following.new(followerId = follower.id, followeeId = followee.id)
+            val following = Following(followerId = follower.id, followeeId = followee.id)
             followingRepository.create(following).getOrThrow()
             followee.buildProfile(true)
         }
     }
 
-    override suspend fun unfollow(follower: User, followee: User): Result<Profile> {
+    override fun unfollow(follower: User, followee: User): Result<Profile> {
         return runCatching {
-            val following = Following.new(followerId = follower.id, followeeId = followee.id)
+            val following = Following(followerId = follower.id, followeeId = followee.id)
             followingRepository.delete(following).getOrThrow()
             followee.buildProfile(false)
         }

@@ -7,7 +7,6 @@ object versions {
     const val exposed = "0.41.1"
     const val prometheus = "1.6.3"
     const val koin = "3.3.3"
-    const val koinKtor = "3.3.1"
     const val hoplite = "2.7.2"
     const val hikariCP = "5.0.1"
     const val auth0Jwt = "4.3.0"
@@ -57,8 +56,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${versions.okhttp}")
 
     implementation("io.insert-koin:koin-core:${versions.koin}")
-    implementation("io.insert-koin:koin-ktor:${versions.koinKtor}")
-    implementation("io.insert-koin:koin-logger-slf4j:${versions.koinKtor}")
     testImplementation("io.insert-koin:koin-test:${versions.koin}")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}")
 

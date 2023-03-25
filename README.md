@@ -3,10 +3,15 @@
 ## Specification
 
 - [gothinkster/realworld](https://github.com/gothinkster/realworld)
+  - [Introduction | RealWorld](https://realworld-docs.netlify.app/docs/specs/backend-specs/introduction/)
+
+## Architecture
+
+- [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 
 ## Dependencies
 
-- [Keycloaka](https://www.keycloak.org/)
+- [Keycloak](https://www.keycloak.org/)
 - [Ktor](https://github.com/ktorio/ktor)
 - [Koin](https://github.com/InsertKoinIO/koin)
 - [Moshi](https://github.com/square/moshi)
@@ -16,26 +21,12 @@
 - [Flyway](https://github.com/flyway/flyway/)
 - [Kotest](https://github.com/kotest/kotest)
 
-## Architecture
+## Commands
 
-- [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- Export Keycloak realm's settings
 
-## References
-
-- [JVMのtargetエラーが出ました](https://www.techback.info/kotlin-jvm-error/)
-  - Additionally, the following snippet is also required in `build.gradle.kts`
-  ```kotlin
-  tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "17"
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "17"
-    }
-  }
-  ```
-
-- To export Keycloak realm's settings
 ```bash
 docker-compose exec keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --realm real-world
 ```
+
+## References

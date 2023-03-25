@@ -1,4 +1,4 @@
-package com.neptuneg.domain.entity.serializer
+package com.neptuneg.infrastructure.serializer
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -17,7 +17,5 @@ object Serializer {
         .add(BigIntegerAdapter())
 
     @JvmStatic
-    val moshi: Moshi by lazy {
-        moshiBuilder.build()
-    }
+    val moshi: Moshi by lazy { moshiBuilder.build() }
 }

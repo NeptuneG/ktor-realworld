@@ -1,7 +1,7 @@
 package com.neptuneg.adaptor.web.util
 
 import com.auth0.jwk.UrlJwkProvider
-import com.neptuneg.config.KeycloakConfig
+import com.neptuneg.infrastructure.config.KeycloakConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.http.HttpMethod

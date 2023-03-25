@@ -5,11 +5,14 @@ import com.neptuneg.adaptor.web.controller.sample
 import com.neptuneg.adaptor.web.controller.user
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.route
 
 fun Application.installRouting() {
     routing {
         sample()
-        user()
-        profile()
+        route("/api") {
+            user()
+            profile()
+        }
     }
 }

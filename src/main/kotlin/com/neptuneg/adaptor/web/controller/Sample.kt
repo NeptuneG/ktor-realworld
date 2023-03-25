@@ -4,23 +4,19 @@ import com.neptuneg.usecase.inputport.Sample
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import org.koin.java.KoinJavaComponent.getKoin
+import org.koin.java.KoinJavaComponent.inject
 
-fun Routing.sample() {
-    val sample: Sample = getKoin().get()
-
+fun Route.sample() {
     route("/") {
-        get {
-            call.respond(sample.foobar())
-        }
-    }
+        val sample: Sample by inject(Sample::class.java)
 
-    authenticate("keycloakJWT") {
-        get("/hello") {
-            call.respond(sample.foobar())
+        authenticate("keycloakJWT", optional = true) {
+            get {
+                call.respond(sample.foobar())
+            }
         }
     }
 }
