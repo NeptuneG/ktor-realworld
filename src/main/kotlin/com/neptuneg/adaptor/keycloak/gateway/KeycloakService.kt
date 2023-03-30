@@ -8,6 +8,7 @@ import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import javax.ws.rs.core.Response
 import com.neptuneg.infrastructure.config.KeycloakConfig
+import org.keycloak.admin.client.resource.UserResource
 import java.util.UUID
 
 class KeycloakService(
@@ -22,17 +23,23 @@ class KeycloakService(
         val response = adminKeycloakRealmUsers.create(userRepresentation)
 
         return if (response.statusInfo == Response.Status.CREATED) {
-            getUserByUsername(username)
+            findUserByUsername(username)
         } else {
             Result.failure(Exception(response.statusInfo.reasonPhrase))
         }
     }
 
-    fun getUser(token: String): Result<User> {
+    fun findUser(token: String): Result<User> {
         return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUser() }
     }
 
-    fun getUserByUsername(username: String): Result<User> {
+    fun findUser(id: UUID): Result<User> {
+        return runCatching {
+            adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUser()
+        }
+    }
+
+    fun findUserByUsername(username: String): Result<User> {
         return runCatching {
             adminKeycloakRealmUsers.search(username).map { it.toUser() }.first()
         }
@@ -72,39 +79,37 @@ class KeycloakService(
         .username(email).password(password).scope("openid")
         .build()
 
-    private fun buildUserRepresentation(username: String, email: String, password: String): UserRepresentation {
-        return UserRepresentation().apply {
-            this.email = email
-            isEmailVerified = true
-            isEnabled = true
-            this.username = username
-            credentials = listOf(
-                CredentialRepresentation().apply {
-                    value = password
-                    type = CredentialRepresentation.PASSWORD
-                    isTemporary = false
-                }
-            )
-        }
-    }
-
-    private fun OAuthClient.OAuthUserInfo.toUser(): User {
-        return User(
-            id = sub,
-            username = preferredUsername,
-            email = email,
-            bio = bio ?: "",
-            image = image ?: "",
+    private fun buildUserRepresentation(
+        username: String,
+        email: String,
+        password: String
+    ) = UserRepresentation().apply {
+        this.email = email
+        isEmailVerified = true
+        isEnabled = true
+        this.username = username
+        credentials = listOf(
+            CredentialRepresentation().apply {
+                value = password
+                type = CredentialRepresentation.PASSWORD
+                isTemporary = false
+            }
         )
     }
 
-    private fun UserRepresentation.toUser(): User {
-        return User(
-            id = UUID.fromString(id),
-            username = username,
-            email = email,
-            bio = firstAttribute("bio") ?: "",
-            image = firstAttribute("image") ?: "",
-        )
-    }
+    private fun OAuthClient.OAuthUserInfo.toUser() = User(
+        id = sub,
+        username = preferredUsername,
+        email = email,
+        bio = bio ?: "",
+        image = image ?: "",
+    )
+
+    private fun UserRepresentation.toUser() = User(
+        id = UUID.fromString(id),
+        username = username,
+        email = email,
+        bio = firstAttribute("bio") ?: "",
+        image = firstAttribute("image") ?: "",
+    )
 }

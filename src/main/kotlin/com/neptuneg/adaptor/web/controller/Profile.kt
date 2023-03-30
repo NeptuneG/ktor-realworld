@@ -24,8 +24,8 @@ fun Route.profile(
 
         authenticate("keycloakJWT", optional = true) {
             get {
-                val follower = call.accessToken?.let { userUseCase.getByToken(it).getOrThrow() }
-                val followee = userUseCase.getByUsername(call.username).getOrThrow()
+                val follower = call.accessToken?.let { userUseCase.findByToken(it).getOrThrow() }
+                val followee = userUseCase.findByUsername(call.username).getOrThrow()
                 val profile = profileUseCase.get(follower, followee).getOrThrow()
                 call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
             }
@@ -34,15 +34,15 @@ fun Route.profile(
         authenticate("keycloakJWT") {
             route("/follow") {
                 post {
-                    val follower = userUseCase.getByToken(call.accessToken!!).getOrThrow()
-                    val followee = userUseCase.getByUsername(call.username).getOrThrow()
+                    val follower = userUseCase.findByToken(call.accessToken!!).getOrThrow()
+                    val followee = userUseCase.findByUsername(call.username).getOrThrow()
                     val profile = profileUseCase.follow(follower, followee).getOrThrow()
                     call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
                 }
 
                 delete {
-                    val follower = userUseCase.getByToken(call.accessToken!!).getOrThrow()
-                    val followee = userUseCase.getByUsername(call.username).getOrThrow()
+                    val follower = userUseCase.findByToken(call.accessToken!!).getOrThrow()
+                    val followee = userUseCase.findByUsername(call.username).getOrThrow()
                     val profile = profileUseCase.unfollow(follower, followee).getOrThrow()
                     call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
                 }

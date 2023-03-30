@@ -11,12 +11,12 @@ class UserUseCaseImpl(
         return keycloakService.createUser(username, email, password)
     }
 
-    override fun getByToken(token: String): Result<User> {
-        return keycloakService.getUser(token)
+    override fun findByToken(token: String): Result<User> {
+        return keycloakService.findUser(token)
     }
 
-    override fun getByUsername(username: String): Result<User> {
-        return keycloakService.getUserByUsername(username)
+    override fun findByUsername(username: String): Result<User> {
+        return keycloakService.findUserByUsername(username)
     }
 
     override fun update(userId: String, userAttributes: Map<String, String?>): Result<Unit> {

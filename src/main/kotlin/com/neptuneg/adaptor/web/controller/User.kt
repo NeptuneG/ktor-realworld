@@ -42,7 +42,7 @@ fun Route.user() {
         post("/login") {
             val request = call.receive<LoginRequest>()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-            val user = userUseCase.getByToken(token).getOrThrow()
+            val user = userUseCase.findByToken(token).getOrThrow()
             call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
     }
@@ -52,7 +52,7 @@ fun Route.user() {
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
-                val user = userUseCase.getByToken(token).getOrThrow()
+                val user = userUseCase.findByToken(token).getOrThrow()
                 call.respond(HttpStatusCode.OK, UserViewModel(user, token))
             }
 
@@ -61,7 +61,7 @@ fun Route.user() {
                 val userAttributes = call.receive<UpdateUser>().toMap()
                 userUseCase.update(userId, userAttributes).onSuccess {
                     val token = call.accessToken!!
-                    val user = userUseCase.getByToken(token).getOrThrow()
+                    val user = userUseCase.findByToken(token).getOrThrow()
                     call.respond(HttpStatusCode.OK, UserViewModel(user, token))
                 }.onFailure {
                     call.respond(HttpStatusCode.UnprocessableEntity)

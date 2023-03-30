@@ -5,14 +5,12 @@ import com.neptuneg.autogen.model.Profile
 import com.neptuneg.domain.entity.Profile as DomainProfile
 
 object ProfileViewModel {
-    operator fun invoke(profile: DomainProfile): GetProfileByUsername200Response {
-        return GetProfileByUsername200Response(
-            profile = Profile(
-                username = profile.username,
-                bio = profile.bio,
-                image = profile.image,
-                following = profile.following
-            )
-        )
-    }
+    operator fun invoke(profile: DomainProfile) = GetProfileByUsername200Response(profile = profile.toView())
 }
+
+internal fun DomainProfile.toView() = Profile(
+    username = user.username,
+    bio = user.bio,
+    image = user.image,
+    following = following
+)

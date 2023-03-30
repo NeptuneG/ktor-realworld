@@ -4,11 +4,13 @@ import com.neptuneg.adaptor.database.gateway.entity.FollowingEntity
 import com.neptuneg.adaptor.database.gateway.extension.runTxCatching
 import com.neptuneg.adaptor.database.gateway.table.FollowingsTable
 import com.neptuneg.domain.entity.Following
+import com.neptuneg.domain.entity.User
 import com.neptuneg.domain.logic.FollowingRepository
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 class FollowingRepositoryImpl: FollowingRepository {
     override fun isExisting(following: Following): Result<Boolean> {
@@ -29,6 +31,15 @@ class FollowingRepositoryImpl: FollowingRepository {
     override fun delete(following: Following): Result<Unit> {
         return runTxCatching {
             FollowingEntity.find { by(following) }.first().delete()
+        }
+    }
+
+    override fun findFolloweeIds(follower: User): Result<List<UUID>> {
+        return runTxCatching {
+            FollowingsTable
+                .slice(FollowingsTable.followeeId)
+                .select { FollowingsTable.followerId.eq(follower.id) }
+                .map { it[FollowingsTable.followeeId] }
         }
     }
 

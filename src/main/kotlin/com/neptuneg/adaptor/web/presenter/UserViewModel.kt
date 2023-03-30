@@ -5,15 +5,13 @@ import com.neptuneg.domain.entity.User as DomainUser
 import com.neptuneg.autogen.model.Login200Response
 
 object UserViewModel {
-    operator fun invoke(user: DomainUser, token: String): Login200Response {
-        return Login200Response(
-            user = User(
-                email = user.email,
-                token = token,
-                username = user.username,
-                bio = user.bio,
-                image = user.image,
-            )
-        )
-    }
+    operator fun invoke(user: DomainUser, token: String) = Login200Response(user = user.toView(token))
 }
+
+internal fun DomainUser.toView(token: String) = User(
+    email = email,
+    token = token,
+    username = username,
+    bio = bio,
+    image = image,
+)
