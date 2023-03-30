@@ -10,4 +10,6 @@ data class Following (
     init {
         if (followerId == followeeId) { throw ValidationException("followerId can not be equal to followeeId") }
     }
+
+    constructor(follower: User, followee: User): this(follower.id, followee.id)
 }
