@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.Payload
 import com.neptuneg.adaptor.web.presenter.UserViewModel
 import com.neptuneg.autogen.model.CreateUserRequest
 import com.neptuneg.autogen.model.LoginRequest
+import com.neptuneg.autogen.model.UpdateCurrentUserRequest
 import com.neptuneg.autogen.model.UpdateUser
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
@@ -22,6 +23,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlin.reflect.full.memberProperties
 import org.koin.java.KoinJavaComponent.inject
+import java.util.*
 
 @Suppress("ThrowsCount")
 fun Route.user() {
@@ -42,7 +44,7 @@ fun Route.user() {
         post("/login") {
             val request = call.receive<LoginRequest>()
             val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-            val user = userUseCase.getByToken(token).getOrThrow()
+            val user = userUseCase.findByToken(token).getOrThrow()
             call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
     }
@@ -52,16 +54,16 @@ fun Route.user() {
         authenticate("keycloakJWT") {
             get {
                 val token = call.accessToken!!
-                val user = userUseCase.getByToken(token).getOrThrow()
+                val user = userUseCase.findByToken(token).getOrThrow()
                 call.respond(HttpStatusCode.OK, UserViewModel(user, token))
             }
 
             put {
-                val userId = call.payload.subject
-                val userAttributes = call.receive<UpdateUser>().toMap()
+                val userId = UUID.fromString(call.payload.subject)
+                val userAttributes = call.receive<UpdateCurrentUserRequest>().user.toMap()
                 userUseCase.update(userId, userAttributes).onSuccess {
                     val token = call.accessToken!!
-                    val user = userUseCase.getByToken(token).getOrThrow()
+                    val user = userUseCase.findByToken(token).getOrThrow()
                     call.respond(HttpStatusCode.OK, UserViewModel(user, token))
                 }.onFailure {
                     call.respond(HttpStatusCode.UnprocessableEntity)

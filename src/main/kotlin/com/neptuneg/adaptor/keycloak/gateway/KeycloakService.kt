@@ -17,30 +17,47 @@ class KeycloakService(
     private val adminKeycloakRealm = adminKeycloak.realm(config.realm)
     private val adminKeycloakRealmUsers = adminKeycloakRealm.users()
 
+    private val usersById: MutableMap<UUID, User> = mutableMapOf()
+    private val usersByUsername: MutableMap<String, User> = mutableMapOf()
+
     fun createUser(username: String, email: String, password: String): Result<User> {
         val userRepresentation = buildUserRepresentation(username, email, password)
         val response = adminKeycloakRealmUsers.create(userRepresentation)
 
         return if (response.statusInfo == Response.Status.CREATED) {
-            getUserByUsername(username)
+            findUserByUsername(username)
         } else {
             Result.failure(Exception(response.statusInfo.reasonPhrase))
         }
     }
 
-    fun getUser(token: String): Result<User> {
+    fun findUserByToken(token: String): Result<User> {
         return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUser() }
     }
 
-    fun getUserByUsername(username: String): Result<User> {
+    fun findUser(id: UUID): Result<User> {
         return runCatching {
-            adminKeycloakRealmUsers.search(username).map { it.toUser() }.first()
+            usersById[id] ?: run {
+                adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUser().apply {
+                    usersById[id] = this
+                }
+            }
         }
     }
 
-    fun updateUser(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
+    fun findUserByUsername(username: String): Result<User> {
         return runCatching {
-            val user = adminKeycloakRealmUsers.get(userId)
+            usersByUsername[username] ?: run {
+                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUser() }.first().apply {
+                    usersByUsername[username] = this
+                }
+            }
+        }
+    }
+
+    fun updateUser(userId: UUID, userAttributes: Map<String, String?>): Result<Unit> {
+        return runCatching {
+            val user = adminKeycloakRealmUsers.get(userId.toString())
             val userRepresentation = user.toRepresentation().apply {
                 userAttributes["username"]?.let { this.username = it }
                 userAttributes["email"]?.let { this.email = it }
@@ -56,7 +73,9 @@ class KeycloakService(
                 userAttributes["bio"]?.let { this.singleAttribute("bio", it) }
                 userAttributes["image"]?.let { this.singleAttribute("image", it) }
             }
-            user.update(userRepresentation)
+            user.update(userRepresentation).apply {
+                usersById[userId] = userRepresentation.toUser()
+            }
         }
     }
 
@@ -72,39 +91,37 @@ class KeycloakService(
         .username(email).password(password).scope("openid")
         .build()
 
-    private fun buildUserRepresentation(username: String, email: String, password: String): UserRepresentation {
-        return UserRepresentation().apply {
-            this.email = email
-            isEmailVerified = true
-            isEnabled = true
-            this.username = username
-            credentials = listOf(
-                CredentialRepresentation().apply {
-                    value = password
-                    type = CredentialRepresentation.PASSWORD
-                    isTemporary = false
-                }
-            )
-        }
-    }
-
-    private fun OAuthClient.OAuthUserInfo.toUser(): User {
-        return User(
-            id = sub,
-            username = preferredUsername,
-            email = email,
-            bio = bio ?: "",
-            image = image ?: "",
+    private fun buildUserRepresentation(
+        username: String,
+        email: String,
+        password: String
+    ) = UserRepresentation().apply {
+        this.email = email
+        isEmailVerified = true
+        isEnabled = true
+        this.username = username
+        credentials = listOf(
+            CredentialRepresentation().apply {
+                value = password
+                type = CredentialRepresentation.PASSWORD
+                isTemporary = false
+            }
         )
     }
 
-    private fun UserRepresentation.toUser(): User {
-        return User(
-            id = UUID.fromString(id),
-            username = username,
-            email = email,
-            bio = firstAttribute("bio") ?: "",
-            image = firstAttribute("image") ?: "",
-        )
-    }
+    private fun OAuthClient.OAuthUserInfo.toUser() = User(
+        id = sub,
+        username = preferredUsername,
+        email = email,
+        bio = bio ?: "",
+        image = image ?: "",
+    )
+
+    private fun UserRepresentation.toUser() = User(
+        id = UUID.fromString(id),
+        username = username,
+        email = email,
+        bio = firstAttribute("bio") ?: "",
+        image = firstAttribute("image") ?: "",
+    )
 }

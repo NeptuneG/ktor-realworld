@@ -9,12 +9,5 @@ data class User(
     val bio: String = "",
     val image: String = "",
 ) {
-    fun buildProfile(isFollowing: Boolean): Profile {
-        return Profile(
-            username = username,
-            bio = bio,
-            image = image,
-            following = isFollowing
-        )
-    }
+    fun profile(isFollowing: Boolean = false) = Profile(this, isFollowing)
 }

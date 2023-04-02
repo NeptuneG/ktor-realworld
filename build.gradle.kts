@@ -13,6 +13,8 @@ object versions {
     const val keycloak = "21.0.1"
     const val moshi = "1.13.0"
     const val okhttp = "4.10.0"
+    const val kotest = "5.5.5"
+    const val mockk = "1.13.4"
 }
 
 plugins {
@@ -46,6 +48,10 @@ dependencies {
     implementation("io.ktor:ktor-client-apache:${versions.ktor}")
     implementation("io.ktor:ktor-server-sessions:${versions.ktor}")
     testImplementation("io.ktor:ktor-server-tests-jvm:${versions.ktor}")
+
+    testImplementation("io.kotest:kotest-runner-junit5:${versions.kotest}")
+    testImplementation("io.kotest:kotest-assertions-core:${versions.kotest}")
+    testImplementation("io.mockk:mockk:${versions.mockk}")
 
     implementation("com.auth0:java-jwt:${versions.auth0Jwt}")
     implementation("org.keycloak:keycloak-admin-client:${versions.keycloak}")
@@ -96,4 +102,8 @@ openApiGenerate {
 
 sourceSets.main {
     java.srcDirs("$rootDir/gen/src/main/kotlin/com/neptuneg/autogen/model")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
