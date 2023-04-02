@@ -1,6 +1,7 @@
 package com.neptuneg.adaptor.database.gateway.repository
 
 import com.neptuneg.adaptor.database.gateway.entity.FollowingEntity
+import com.neptuneg.adaptor.database.gateway.extension.isExisting
 import com.neptuneg.adaptor.database.gateway.extension.runTxCatching
 import com.neptuneg.adaptor.database.gateway.table.FollowingsTable
 import com.neptuneg.domain.entity.Following
@@ -14,7 +15,7 @@ import java.util.*
 class FollowingRepositoryImpl : FollowingRepository {
     override fun isExisting(followerId: UUID, followeeId: UUID): Result<Boolean> {
         return runTxCatching {
-            FollowingsTable.select { by(followerId, followeeId) }.count() != 0L
+            FollowingsTable.isExisting { by(followerId, followeeId) }
         }
     }
 
