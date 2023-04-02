@@ -1,6 +1,7 @@
 package com.neptuneg.adaptor.database.gateway.repository
 
 import com.neptuneg.adaptor.database.gateway.entity.ArticleEntity
+import com.neptuneg.adaptor.database.gateway.extension.isExisting
 import com.neptuneg.adaptor.database.gateway.extension.runTxCatching
 import com.neptuneg.adaptor.database.gateway.table.*
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
@@ -9,9 +10,7 @@ import com.neptuneg.domain.logic.ArticleRepository
 import com.neptuneg.domain.logic.FollowingRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.util.*
-import kotlin.NoSuchElementException
 
 class ArticleRepositoryImpl(
     private val keycloakService: KeycloakService,
@@ -25,15 +24,15 @@ class ArticleRepositoryImpl(
                 .select { ArticleTagsTable.articleId.eq(article.id) }
                 .map { Tag(it[TagsTable.value]) }
             val isFavorited = user?.let {
-                ArticleFavoritesTable.select {
+                ArticleFavoritesTable.isExisting {
                     ArticleFavoritesTable.articleId.eq(article.id).and(ArticleFavoritesTable.favoriteeId.eq(it.id))
-                }.count() != 0L
+                }
             } ?: false
             val favoritesCount = ArticleFavoritesTable
                 .select { ArticleFavoritesTable.articleId.eq(article.id) }
                 .count()
             val author = keycloakService.findUser(article.authorId).getOrThrow()
-            val isFollowing = isFollowing(user, author)
+            val isFollowing = user?.let { followingRepository.isExisting(user.id, author.id).getOrThrow() } ?: false
 
             article.toArticle(author, isFollowing, isFavorited, favoritesCount, tags)
         }
@@ -42,8 +41,6 @@ class ArticleRepositoryImpl(
     @Suppress("SpreadOperator")
     override fun fetchUserFeed(user: User, pagination: Pagination): Result<List<Article>> {
         return runTxCatching {
-            val tagsCol = TagsTable.value.groupConcat(groupConcatSeparator).alias("tags")
-
             val favoritedArticleIds = ArticleFavoritesTable
                 .slice(ArticleFavoritesTable.articleId)
                 .select { ArticleFavoritesTable.favoriteeId.eq(user.id) }
@@ -66,9 +63,8 @@ class ArticleRepositoryImpl(
                     val favoritesCount = ArticleFavoritesTable.select {
                         ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
                     }.count()
-                    val tags = result[tagsCol].split(groupConcatSeparator).map { Tag(it) }
 
-                    result.toArticle(author, true, isFavorited, favoritesCount, tags)
+                    result.toArticle(author, true, isFavorited, favoritesCount)
                 }
         }
     }
@@ -125,21 +121,18 @@ class ArticleRepositoryImpl(
     @Suppress("LongMethod", "SpreadOperator")
     override fun search(param: ArticleRepository.SearchParam, user: User?): Result<List<Article>> {
         return runTxCatching {
-            val tagsCol = TagsTable.value.groupConcat(groupConcatSeparator).alias("tags")
             val favoritedArticleIds = user?.let {
                 ArticleFavoritesTable
                     .slice(ArticleFavoritesTable.articleId)
                     .select { ArticleFavoritesTable.favoriteeId.eq(user.id) }
                     .map { it[ArticleFavoritesTable.articleId] }
             }
+            val followeeIds: List<UUID> = user?.let {
+                followingRepository.findFolloweeIds(it).getOrThrow()
+            } ?: emptyList()
             val tables = ArticlesTable.innerJoin(ArticleTagsTable).innerJoin(TagsTable).let {
                 param.favoritedUserName?.let { _ ->
                     it.innerJoin(ArticleFavoritesTable)
-                        .join(
-                            FollowingsTable,
-                            JoinType.INNER,
-                            additionalConstraint = { FollowingsTable.followeeId.eq(ArticlesTable.authorId) }
-                        )
                 } ?: it
             }
 
@@ -176,28 +169,27 @@ class ArticleRepositoryImpl(
                     val favoritesCount = ArticleFavoritesTable.select {
                         ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
                     }.count()
-                    val tags = result[tagsCol].split(groupConcatSeparator).map { Tag(it) }
-                    val isFollowing = isFollowing(user, author)
+                    val isFollowing = user?.let { followeeIds.contains(author.id) } ?: false
 
-                    result.toArticle(author, isFollowing, isFavorited, favoritesCount, tags)
+                    result.toArticle(author, isFollowing, isFavorited, favoritesCount)
                 }
         }
     }
 
     private val groupConcatSeparator = ","
+    private val tagsCol = TagsTable.value.groupConcat(groupConcatSeparator).alias("tags")
 
     private fun ResultRow.toArticle(
         author: User,
         isFollowing: Boolean,
         isFavorited: Boolean,
         favoritesCount: Long,
-        tags: List<Tag>
     ) = Article(
         slug = this[ArticlesTable.slug],
         title = this[ArticlesTable.title],
         description = this[ArticlesTable.description],
         body = this[ArticlesTable.body],
-        tags = tags,
+        tags = this[tagsCol].split(groupConcatSeparator).map { Tag(it) },
         createdAt = this[ArticlesTable.createdAt],
         updatedAt = this[ArticlesTable.updatedAt],
         favorited = isFavorited,
@@ -223,10 +215,4 @@ class ArticleRepositoryImpl(
         favoritesCount = favoritesCount,
         author = author.profile(isFollowing),
     )
-
-    private fun isFollowing(user: User?, author: User): Boolean {
-        return user?.let {
-            followingRepository.isExisting(user.id, author.id).getOrThrow()
-        } ?: false
-    }
 }
