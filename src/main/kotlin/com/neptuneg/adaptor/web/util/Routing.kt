@@ -1,9 +1,6 @@
 package com.neptuneg.adaptor.web.util
 
-import com.neptuneg.adaptor.web.controller.article
-import com.neptuneg.adaptor.web.controller.profile
-import com.neptuneg.adaptor.web.controller.sample
-import com.neptuneg.adaptor.web.controller.user
+import com.neptuneg.adaptor.web.controller.*
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 import io.ktor.server.routing.route
@@ -15,6 +12,7 @@ fun Application.installRouting() {
             user()
             profile()
             article()
+            comment()
         }
     }
 }

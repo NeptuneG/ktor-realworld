@@ -20,4 +20,14 @@ data class Comment(
         createdAt = createdAt,
         updatedAt = createdAt,
     )
+
+    constructor(id: Int, comment: Comment): this(
+        id = id,
+        body = comment.body,
+        createdAt = comment.createdAt,
+        updatedAt = comment.updatedAt,
+        author = comment.author
+    )
+
+    fun withId(id: Int) = Comment(id, this)
 }

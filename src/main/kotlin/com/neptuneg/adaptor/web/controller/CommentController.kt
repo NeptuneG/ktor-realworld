@@ -3,6 +3,7 @@ package com.neptuneg.adaptor.web.controller
 import com.neptuneg.adaptor.web.presenter.CommentViewModel
 import com.neptuneg.adaptor.web.presenter.CommentsViewModel
 import com.neptuneg.autogen.model.CreateArticleCommentRequest
+import com.neptuneg.domain.entity.Comment
 import com.neptuneg.usecase.inputport.CommentUseCase
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.*
@@ -32,7 +33,7 @@ fun Route.comment() {
                 post {
                     val body = call.receive<CreateArticleCommentRequest>().comment.body
                     val author = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                    val comment = commentUseCase.createComment(author, body).getOrThrow()
+                    val comment = commentUseCase.createComment(call.slug, Comment(body, author.profile())).getOrThrow()
                     call.respond(HttpStatusCode.OK, CommentViewModel(comment))
                 }
             }
@@ -47,5 +48,5 @@ fun Route.comment() {
     }
 }
 
-internal val ApplicationCall.commentId: String get() = parameters["commentId"]
+internal val ApplicationCall.commentId: Int get() = parameters["commentId"]?.toInt()
     ?: throw BadRequestException("commentId is required")
