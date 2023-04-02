@@ -17,6 +17,9 @@ class KeycloakService(
     private val adminKeycloakRealm = adminKeycloak.realm(config.realm)
     private val adminKeycloakRealmUsers = adminKeycloakRealm.users()
 
+    private val usersById: MutableMap<UUID, User> = mutableMapOf()
+    private val usersByUsername: MutableMap<String, User> = mutableMapOf()
+
     fun createUser(username: String, email: String, password: String): Result<User> {
         val userRepresentation = buildUserRepresentation(username, email, password)
         val response = adminKeycloakRealmUsers.create(userRepresentation)
@@ -34,19 +37,27 @@ class KeycloakService(
 
     fun findUser(id: UUID): Result<User> {
         return runCatching {
-            adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUser()
+            usersById[id] ?: run {
+                adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUser().apply {
+                    usersById[id] = this
+                }
+            }
         }
     }
 
     fun findUserByUsername(username: String): Result<User> {
         return runCatching {
-            adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUser() }.first()
+            usersByUsername[username] ?: run {
+                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUser() }.first().apply {
+                    usersByUsername[username] = this
+                }
+            }
         }
     }
 
-    fun updateUser(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
+    fun updateUser(userId: UUID, userAttributes: Map<String, String?>): Result<Unit> {
         return runCatching {
-            val user = adminKeycloakRealmUsers.get(userId)
+            val user = adminKeycloakRealmUsers.get(userId.toString())
             val userRepresentation = user.toRepresentation().apply {
                 userAttributes["username"]?.let { this.username = it }
                 userAttributes["email"]?.let { this.email = it }
@@ -62,7 +73,9 @@ class KeycloakService(
                 userAttributes["bio"]?.let { this.singleAttribute("bio", it) }
                 userAttributes["image"]?.let { this.singleAttribute("image", it) }
             }
-            user.update(userRepresentation)
+            user.update(userRepresentation).apply {
+                usersById[userId] = userRepresentation.toUser()
+            }
         }
     }
 

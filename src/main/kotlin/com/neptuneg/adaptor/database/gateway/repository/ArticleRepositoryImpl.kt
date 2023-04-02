@@ -9,7 +9,9 @@ import com.neptuneg.domain.logic.ArticleRepository
 import com.neptuneg.domain.logic.FollowingRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.util.*
+import kotlin.NoSuchElementException
 
 class ArticleRepositoryImpl(
     private val keycloakService: KeycloakService,
@@ -40,8 +42,6 @@ class ArticleRepositoryImpl(
     @Suppress("SpreadOperator")
     override fun fetchUserFeed(user: User, pagination: Pagination): Result<List<Article>> {
         return runTxCatching {
-            val authorById = mutableMapOf<UUID, User>()
-            val groupConcatSeparator = ","
             val tagsCol = TagsTable.value.groupConcat(groupConcatSeparator).alias("tags")
 
             val favoritedArticleIds = ArticleFavoritesTable
@@ -61,11 +61,7 @@ class ArticleRepositoryImpl(
                 .groupBy(*ArticlesTable.columns.toTypedArray())
                 .limit(pagination.limit, pagination.offset)
                 .map { result ->
-                    val author = result[ArticlesTable.authorId].let { authorId ->
-                        authorById[authorId] ?: keycloakService.findUser(authorId).getOrThrow().apply {
-                            authorById[authorId] = this
-                        }
-                    }
+                    val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
                     val isFavorited = favoritedArticleIds.contains(result[ArticlesTable.id])
                     val favoritesCount = ArticleFavoritesTable.select {
                         ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
@@ -129,17 +125,13 @@ class ArticleRepositoryImpl(
     @Suppress("LongMethod", "SpreadOperator")
     override fun search(param: ArticleRepository.SearchParam, user: User?): Result<List<Article>> {
         return runTxCatching {
-            val authorById = mutableMapOf<UUID, User>()
-            val groupConcatSeparator = ","
             val tagsCol = TagsTable.value.groupConcat(groupConcatSeparator).alias("tags")
-
             val favoritedArticleIds = user?.let {
                 ArticleFavoritesTable
                     .slice(ArticleFavoritesTable.articleId)
                     .select { ArticleFavoritesTable.favoriteeId.eq(user.id) }
                     .map { it[ArticleFavoritesTable.articleId] }
             }
-
             val tables = ArticlesTable.innerJoin(ArticleTagsTable).innerJoin(TagsTable).let {
                 param.favoritedUserName?.let { _ ->
                     it.innerJoin(ArticleFavoritesTable)
@@ -170,11 +162,7 @@ class ArticleRepositoryImpl(
                 .groupBy(*ArticlesTable.columns.toTypedArray())
                 .limit(param.pagination.limit, param.pagination.offset)
                 .map { result ->
-                    val author = result[ArticlesTable.authorId].let { authorId ->
-                        authorById[authorId] ?: keycloakService.findUser(authorId).getOrThrow().apply {
-                            authorById[authorId] = this
-                        }
-                    }
+                    val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
                     val isFavorited = user?.let {
                         favoritedArticleIds!!.contains(result[ArticlesTable.id])
                     } ?: false
@@ -188,6 +176,8 @@ class ArticleRepositoryImpl(
                 }
         }
     }
+
+    private val groupConcatSeparator = ","
 
     private fun ResultRow.toArticle(
         author: User,

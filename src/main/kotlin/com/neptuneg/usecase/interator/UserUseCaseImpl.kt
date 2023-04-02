@@ -3,6 +3,7 @@ package com.neptuneg.usecase.interator
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
 import com.neptuneg.domain.entity.User
 import com.neptuneg.usecase.inputport.UserUseCase
+import java.util.*
 
 class UserUseCaseImpl(
     private val keycloakService: KeycloakService
@@ -19,7 +20,7 @@ class UserUseCaseImpl(
         return keycloakService.findUserByUsername(username)
     }
 
-    override fun update(userId: String, userAttributes: Map<String, String?>): Result<Unit> {
+    override fun update(userId: UUID, userAttributes: Map<String, String?>): Result<Unit> {
         return keycloakService.updateUser(userId, userAttributes)
     }
 
