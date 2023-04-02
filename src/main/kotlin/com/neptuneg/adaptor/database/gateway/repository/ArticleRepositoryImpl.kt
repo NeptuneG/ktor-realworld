@@ -133,11 +133,6 @@ class ArticleRepositoryImpl(
             val tables = ArticlesTable.innerJoin(ArticleTagsTable).innerJoin(TagsTable).let {
                 param.favoritedUserName?.let { _ ->
                     it.innerJoin(ArticleFavoritesTable)
-                        .join(
-                            FollowingsTable,
-                            JoinType.INNER,
-                            additionalConstraint = { FollowingsTable.followeeId.eq(ArticlesTable.authorId) }
-                        )
                 } ?: it
             }
 
