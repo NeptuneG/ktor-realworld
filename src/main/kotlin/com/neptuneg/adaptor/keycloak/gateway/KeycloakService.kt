@@ -8,7 +8,6 @@ import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import javax.ws.rs.core.Response
 import com.neptuneg.infrastructure.config.KeycloakConfig
-import org.keycloak.admin.client.resource.UserResource
 import java.util.UUID
 
 class KeycloakService(
@@ -29,7 +28,7 @@ class KeycloakService(
         }
     }
 
-    fun findUser(token: String): Result<User> {
+    fun findUserByToken(token: String): Result<User> {
         return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUser() }
     }
 
@@ -41,7 +40,7 @@ class KeycloakService(
 
     fun findUserByUsername(username: String): Result<User> {
         return runCatching {
-            adminKeycloakRealmUsers.search(username).map { it.toUser() }.first()
+            adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUser() }.first()
         }
     }
 

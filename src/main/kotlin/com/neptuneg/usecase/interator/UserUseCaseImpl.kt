@@ -12,7 +12,7 @@ class UserUseCaseImpl(
     }
 
     override fun findByToken(token: String): Result<User> {
-        return keycloakService.findUser(token)
+        return keycloakService.findUserByToken(token)
     }
 
     override fun findByUsername(username: String): Result<User> {

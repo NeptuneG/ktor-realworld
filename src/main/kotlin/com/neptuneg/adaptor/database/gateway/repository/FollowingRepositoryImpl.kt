@@ -9,13 +9,12 @@ import com.neptuneg.domain.logic.FollowingRepository
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-class FollowingRepositoryImpl: FollowingRepository {
-    override fun isExisting(following: Following): Result<Boolean> {
+class FollowingRepositoryImpl : FollowingRepository {
+    override fun isExisting(followerId: UUID, followeeId: UUID): Result<Boolean> {
         return runTxCatching {
-            FollowingsTable.select { by(following) }.count() != 0L
+            FollowingsTable.select { by(followerId, followeeId) }.count() != 0L
         }
     }
 
@@ -46,4 +45,7 @@ class FollowingRepositoryImpl: FollowingRepository {
     private fun SqlExpressionBuilder.by(following: Following) =
         (FollowingsTable.followerId eq following.followerId)
             .and(FollowingsTable.followeeId eq following.followeeId)
+    private fun SqlExpressionBuilder.by(followerId: UUID, followeeId: UUID) =
+        (FollowingsTable.followerId eq followerId)
+            .and(FollowingsTable.followeeId eq followeeId)
 }

@@ -2,7 +2,6 @@ package com.neptuneg.adaptor.web.presenter
 
 import com.neptuneg.autogen.model.Article
 import com.neptuneg.autogen.model.CreateArticle201Response
-import com.neptuneg.infrastructure.timezone.JST_ZONE_OFFSET
 import com.neptuneg.domain.entity.Article as DomainArticle
 
 object ArticleViewModel {
@@ -15,9 +14,9 @@ internal fun DomainArticle.toView() = Article(
     description = description,
     body = body,
     tagList = tags.map { it.tag },
-    createdAt = createdAt!!.atOffset(JST_ZONE_OFFSET),
-    updatedAt = updatedAt!!.atOffset(JST_ZONE_OFFSET),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
     favorited = favorited,
-    favoritesCount = favoritesCount,
+    favoritesCount = favoritesCount.toInt(),
     author = author.toView()
 )

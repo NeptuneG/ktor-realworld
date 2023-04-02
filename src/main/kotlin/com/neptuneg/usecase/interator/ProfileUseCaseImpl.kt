@@ -14,7 +14,7 @@ class ProfileUseCaseImpl(
     override fun get(follower: User?, followee: User): Result<Profile> {
         return runCatching {
             val isFollowing = follower?.let { follower ->
-                followingRepository.isExisting(Following(follower, followee)).getOrThrow()
+                followingRepository.isExisting(follower.id, followee.id).getOrThrow()
             } ?: false
 
             followee.profile(isFollowing)

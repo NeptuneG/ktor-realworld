@@ -1,5 +1,6 @@
 package com.neptuneg.adaptor.web.util
 
+import com.neptuneg.adaptor.web.controller.article
 import com.neptuneg.adaptor.web.controller.profile
 import com.neptuneg.adaptor.web.controller.sample
 import com.neptuneg.adaptor.web.controller.user
@@ -13,6 +14,7 @@ fun Application.installRouting() {
         route("/api") {
             user()
             profile()
+            article()
         }
     }
 }
