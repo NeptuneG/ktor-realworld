@@ -13,6 +13,7 @@ fun Application.installRouting() {
             profile()
             article()
             comment()
+            tag()
         }
     }
 }
