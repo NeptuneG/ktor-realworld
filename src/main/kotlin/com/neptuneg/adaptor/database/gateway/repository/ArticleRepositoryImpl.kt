@@ -155,8 +155,15 @@ class ArticleRepositoryImpl(
                             andWhere { ArticleFavoritesTable.favoriteeId.eq(favoritee.id) }
                         } ?: return@runTxCatching emptyList()
                     }
-                    param.tag?.let {
-                        andWhere { TagsTable.value.eq(it) }
+                    param.tag?.let { tag ->
+                        andWhere {
+                            ArticlesTable.id.inSubQuery(
+                                ArticleTagsTable
+                                    .innerJoin(TagsTable)
+                                    .slice(ArticleTagsTable.articleId)
+                                    .select { TagsTable.value.eq(tag) }
+                            )
+                        }
                     }
                 }
                 .groupBy(*ArticlesTable.columns.toTypedArray())
