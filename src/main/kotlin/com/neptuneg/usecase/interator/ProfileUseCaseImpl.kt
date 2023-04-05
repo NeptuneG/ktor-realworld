@@ -1,10 +1,10 @@
 package com.neptuneg.usecase.interator
 
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
-import com.neptuneg.domain.entity.Following
-import com.neptuneg.domain.entity.Profile
-import com.neptuneg.domain.entity.User
-import com.neptuneg.domain.logic.FollowingRepository
+import com.neptuneg.domain.entities.Following
+import com.neptuneg.domain.entities.Profile
+import com.neptuneg.domain.entities.User
+import com.neptuneg.domain.logics.FollowingRepository
 import com.neptuneg.usecase.inputport.ProfileUseCase
 
 class ProfileUseCaseImpl(

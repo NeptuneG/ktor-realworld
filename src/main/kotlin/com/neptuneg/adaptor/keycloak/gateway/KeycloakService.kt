@@ -1,6 +1,6 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
-import com.neptuneg.domain.entity.User
+import com.neptuneg.domain.entities.User
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder

@@ -1,8 +1,8 @@
 package com.neptuneg
 
-import com.neptuneg.adaptor.web.controller.sample
-import com.neptuneg.adaptor.web.util.installAuthentication
-import com.neptuneg.adaptor.web.util.installContentNegotiation
+import com.neptuneg.adaptor.web.controllers.sample
+import com.neptuneg.adaptor.web.utils.installAuthentication
+import com.neptuneg.adaptor.web.utils.installContentNegotiation
 import com.neptuneg.infrastructure.serializer.Serializer
 import com.neptuneg.usecase.inputport.Sample
 import io.kotest.core.spec.style.FunSpec

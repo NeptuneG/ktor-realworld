@@ -1,7 +1,7 @@
-package com.neptuneg.usecase.inputport
+package com.neptuneg.domain.logics
 
 import com.neptuneg.domain.entities.Tag
 
-interface TagUseCase {
+interface TagRepository {
     fun getTags(): Result<List<Tag>>
 }

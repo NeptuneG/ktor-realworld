@@ -1,8 +1,8 @@
 package com.neptuneg.usecase.inputport
 
-import com.neptuneg.domain.entity.Article
-import com.neptuneg.domain.entity.Pagination
-import com.neptuneg.domain.entity.User
+import com.neptuneg.domain.entities.Article
+import com.neptuneg.domain.entities.Pagination
+import com.neptuneg.domain.entities.User
 
 interface ArticleUseCase {
     data class SearchParam(

@@ -1,8 +1,8 @@
 package com.neptuneg.adaptor.database
 
 import com.neptuneg.Database
-import com.neptuneg.adaptor.database.gateway.repository.*
-import com.neptuneg.domain.logic.*
+import com.neptuneg.adaptor.database.gateway.repositories.*
+import com.neptuneg.domain.logics.*
 import org.koin.dsl.module
 
 val databaseKoins = module {

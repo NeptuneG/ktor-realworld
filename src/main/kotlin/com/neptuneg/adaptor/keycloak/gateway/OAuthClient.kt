@@ -1,6 +1,6 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
-import com.neptuneg.infrastructure.exception.UnexpectedException
+import com.neptuneg.infrastructure.exceptions.UnexpectedException
 import com.neptuneg.infrastructure.serializer.Serializer
 import com.squareup.moshi.Json
 import okhttp3.OkHttpClient
