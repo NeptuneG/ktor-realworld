@@ -11,7 +11,7 @@ import java.util.*
 class ArticleUseCaseImpl(
     private val articleRepository: ArticleRepository,
     private val favoriteRepository: FavoriteRepository,
-): ArticleUseCase {
+) : ArticleUseCase {
     override fun createArticle(article: Article): Result<Article> {
         return articleRepository.create(article)
     }

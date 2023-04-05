@@ -3,9 +3,9 @@ package com.neptuneg.adaptor.web.util
 import com.neptuneg.infrastructure.serializer.Serializer
 import com.squareup.moshi.Moshi
 import io.ktor.http.ContentType
-import io.ktor.http.withCharsetIfNeeded
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
+import io.ktor.http.withCharsetIfNeeded
 import io.ktor.serialization.Configuration
 import io.ktor.serialization.ContentConverter
 import io.ktor.serialization.JsonConvertException

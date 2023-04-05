@@ -7,7 +7,7 @@ import com.neptuneg.usecase.inputport.CommentUseCase
 
 class CommentUseCaseImpl(
     private val commentRepository: CommentRepository
-): CommentUseCase {
+) : CommentUseCase {
     override fun getArticleComments(articleSlug: String, user: User?): Result<List<Comment>> {
         return commentRepository.getArticleComments(articleSlug, user)
     }

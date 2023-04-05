@@ -3,7 +3,7 @@ package com.neptuneg.adaptor.database.gateway.table
 import com.neptuneg.adaptor.database.gateway.util.datetimeWithTZ
 import org.jetbrains.exposed.dao.id.IntIdTable
 
-object ArticlesTable: IntIdTable("articles") {
+object ArticlesTable : IntIdTable("articles") {
     val authorId = uuid(name = "author_id")
     val slug = varchar(name = "slug", length = 64).uniqueIndex()
     val title = varchar(name = "title", length = 64).uniqueIndex()

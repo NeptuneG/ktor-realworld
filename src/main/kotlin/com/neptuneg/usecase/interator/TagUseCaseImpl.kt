@@ -6,7 +6,7 @@ import com.neptuneg.usecase.inputport.TagUseCase
 
 class TagUseCaseImpl(
     private val tagRepository: TagRepository
-): TagUseCase {
+) : TagUseCase {
     override fun getTags(): Result<List<Tag>> {
         return tagRepository.getTags()
     }

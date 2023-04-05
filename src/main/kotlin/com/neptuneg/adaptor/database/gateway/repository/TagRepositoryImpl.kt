@@ -6,7 +6,7 @@ import com.neptuneg.domain.entity.Tag
 import com.neptuneg.domain.logic.TagRepository
 import org.jetbrains.exposed.sql.selectAll
 
-class TagRepositoryImpl: TagRepository {
+class TagRepositoryImpl : TagRepository {
     override fun getTags(): Result<List<Tag>> {
         return runTxCatching {
             TagsTable

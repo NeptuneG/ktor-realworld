@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database as ExposedDatabase
 
-class ExposedPostgres(private val config: DatabaseConfig): Database {
+class ExposedPostgres(private val config: DatabaseConfig) : Database {
     override fun connect() = ExposedDatabase.connect(dataSource).let { }
 
     private val dataSource = HikariDataSource(

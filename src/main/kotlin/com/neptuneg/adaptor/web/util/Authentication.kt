@@ -11,9 +11,9 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.OAuthServerSettings
-import io.ktor.server.auth.oauth
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.auth.oauth
 import io.ktor.server.response.respond
 import java.net.URI
 

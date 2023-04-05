@@ -10,7 +10,7 @@ import com.neptuneg.usecase.inputport.ProfileUseCase
 class ProfileUseCaseImpl(
     private val followingRepository: FollowingRepository,
     private val keycloakService: KeycloakService,
-): ProfileUseCase {
+) : ProfileUseCase {
     override fun get(follower: User?, followee: User): Result<Profile> {
         return runCatching {
             val isFollowing = follower?.let { follower ->
