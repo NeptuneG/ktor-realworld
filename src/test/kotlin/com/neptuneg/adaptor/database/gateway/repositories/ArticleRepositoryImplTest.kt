@@ -1,6 +1,5 @@
 package com.neptuneg.adaptor.database.gateway.repositories
 
-import com.neptuneg.infrastructure.exceptions.UnexpectedException
 import com.neptuneg.usecase.inputport.Sample
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
@@ -25,25 +24,23 @@ class ArticleRepositoryImplTest : FunSpec({
     }
 
     context("coroutine") {
-        val random = Random(Instant.now().toEpochMilli())
-        fun plusOne(a: Int): Int {
-            if (a == 5) {
-                throw UnexpectedException("is 5")
-            }
-            return a + 1
-        }
         test("parallel map") {
-            val list = (1..10).toList()
-            val result = list.map {
-                async {
-                    val sleep = random.nextUInt() % 10u
-                    delay((sleep * 1000u).toLong())
-                    val result = plusOne(it)
-                    println("slept $sleep second and get $result")
-                    result
+            fun plusOne(a: Int) = (a + 1)
+            val random = Random(Instant.now().toEpochMilli())
+            (1..10)
+                .toList()
+                .map {
+                    async {
+                        val sleep = (random.nextUInt() % 10u).apply {
+                            delay((this * 1000u).toLong())
+                        }
+                        plusOne(it).apply {
+                            println("slept $sleep second and get $this")
+                        }
+                    }
                 }
-            }.awaitAll()
-            result.shouldContainExactly((2..11).toList())
+                .awaitAll()
+                .shouldContainExactly((2..11).toList())
         }
     }
 })

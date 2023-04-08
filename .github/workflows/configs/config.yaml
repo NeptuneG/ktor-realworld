@@ -1,0 +1,15 @@
+server:
+  port: 8000
+  keycloak:
+    host: "http://0.0.0.0:8080"
+    realm: "real-world"
+    client_id: "sample-app"
+    client_secret: "IgXvWjtlol2wwwyhVle44VpAvn3phXK1"
+    admin_username: "admin"
+    admin_password: "admin"
+    redirect_uri: ""
+database:
+  jdbc_url: "jdbc:postgresql://0.0.0.0:5432/realworld"
+  username: "admin"
+  password: "password"
+  driver_class_name: "org.postgresql.Driver"
