@@ -19,7 +19,9 @@
 - [Exposed](https://github.com/JetBrains/Exposed)
 - [HikariCP](https://github.com/brettwooldridge/HikariCP)
 - [Flyway](https://github.com/flyway/flyway/)
+- [Hoplite](https://github.com/sksamuel/hoplite)
 - [Kotest](https://github.com/kotest/kotest)
+- [MockK](https://github.com/mockk/mockk)
 
 ## Commands
 
