@@ -8,6 +8,9 @@ import com.neptuneg.domain.entities.Comment
 import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.CommentRepository
 import com.neptuneg.domain.logics.FollowingRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -22,19 +25,24 @@ class CommentRepositoryImpl(
             val followeeIds = user?.let {
                 followingRepository.findFolloweeIds(user).getOrThrow()
             } ?: emptyList()
-            CommentsTable.innerJoin(ArticlesTable)
+            val result = CommentsTable.innerJoin(ArticlesTable)
                 .slice(CommentsTable.columns)
                 .select { ArticlesTable.slug.eq(articleSlug) }
-                .map {
-                    val author = keycloakService.findUser(it[CommentsTable.authorId]).getOrThrow()
-                    Comment(
-                        id = it[CommentsTable.id].value,
-                        body = it[CommentsTable.body],
-                        createdAt = it[CommentsTable.createdAt],
-                        updatedAt = it[CommentsTable.updatedAt],
-                        author = author.profile(followeeIds.contains(author.id))
-                    )
-                }
+
+            runBlocking {
+                result.map {
+                    async {
+                        val author = keycloakService.findUser(it[CommentsTable.authorId]).getOrThrow()
+                        Comment(
+                            id = it[CommentsTable.id].value,
+                            body = it[CommentsTable.body],
+                            createdAt = it[CommentsTable.createdAt],
+                            updatedAt = it[CommentsTable.updatedAt],
+                            author = author.profile(followeeIds.contains(author.id))
+                        )
+                    }
+                }.awaitAll()
+            }
         }
     }
 

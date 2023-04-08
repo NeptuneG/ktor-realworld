@@ -6,9 +6,9 @@ import com.neptuneg.domain.entities.Profile
 import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.FollowingRepository
 import com.neptuneg.usecase.inputport.ProfileUseCase
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 
 class ProfileUseCaseImpl(
     private val followingRepository: FollowingRepository,
@@ -38,8 +38,12 @@ class ProfileUseCaseImpl(
 
     override fun findFollowees(follower: User): Result<List<Profile>> {
         return followingRepository.findFolloweeIds(follower).mapCatching { followeeIds ->
-            followeeIds.map { followeeId ->
-                keycloakService.findUser(followeeId).map { it.profile(true) }.getOrThrow()
+            runBlocking {
+                followeeIds.map { followeeId ->
+                    async {
+                        keycloakService.findUser(followeeId).map { it.profile(true) }.getOrThrow()
+                    }
+                }.awaitAll()
             }
         }
     }

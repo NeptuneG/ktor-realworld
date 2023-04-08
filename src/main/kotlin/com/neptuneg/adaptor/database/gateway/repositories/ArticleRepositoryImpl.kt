@@ -15,6 +15,9 @@ import com.neptuneg.domain.entities.Tag
 import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.ArticleRepository
 import com.neptuneg.domain.logics.FollowingRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -65,7 +68,7 @@ class ArticleRepositoryImpl(
                 .select { ArticleFavoritesTable.favoriteeId.eq(user.id) }
                 .map { it[ArticleFavoritesTable.articleId] }
 
-            ArticlesTable
+            val results = ArticlesTable
                 .join(
                     FollowingsTable,
                     JoinType.INNER,
@@ -76,15 +79,20 @@ class ArticleRepositoryImpl(
                 .select { FollowingsTable.followerId.eq(user.id) }
                 .groupBy(*ArticlesTable.columns.toTypedArray())
                 .limit(pagination.limit, pagination.offset)
-                .map { result ->
-                    val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
-                    val isFavorited = favoritedArticleIds.contains(result[ArticlesTable.id])
-                    val favoritesCount = ArticleFavoritesTable.select {
-                        ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
-                    }.count()
 
-                    result.toArticle(author, true, isFavorited, favoritesCount)
-                }
+            runBlocking {
+                results.map { result ->
+                    async {
+                        val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
+                        val isFavorited = favoritedArticleIds.contains(result[ArticlesTable.id])
+                        val favoritesCount = ArticleFavoritesTable.select {
+                            ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
+                        }.count()
+
+                        result.toArticle(author, true, isFavorited, favoritesCount)
+                    }
+                }.awaitAll()
+            }
         }
     }
 
@@ -156,7 +164,7 @@ class ArticleRepositoryImpl(
                 } ?: it
             }
 
-            tables.slice(tagsCol, *ArticlesTable.columns.toTypedArray())
+            val results = tables.slice(tagsCol, *ArticlesTable.columns.toTypedArray())
                 .selectAll().apply {
                     param.authorName?.let {
                         keycloakService.findUserByUsername(it).getOrNull()?.let { author ->
@@ -181,18 +189,23 @@ class ArticleRepositoryImpl(
                 }
                 .groupBy(*ArticlesTable.columns.toTypedArray())
                 .limit(param.pagination.limit, param.pagination.offset)
-                .map { result ->
-                    val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
-                    val isFavorited = user?.let {
-                        favoritedArticleIds!!.contains(result[ArticlesTable.id])
-                    } ?: false
-                    val favoritesCount = ArticleFavoritesTable.select {
-                        ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
-                    }.count()
-                    val isFollowing = user?.let { followeeIds.contains(author.id) } ?: false
 
-                    result.toArticle(author, isFollowing, isFavorited, favoritesCount)
-                }
+            runBlocking {
+                results.map { result ->
+                    async {
+                        val author = keycloakService.findUser(result[ArticlesTable.authorId]).getOrThrow()
+                        val isFavorited = user?.let {
+                            favoritedArticleIds!!.contains(result[ArticlesTable.id])
+                        } ?: false
+                        val favoritesCount = ArticleFavoritesTable.select {
+                            ArticleFavoritesTable.articleId.eq(result[ArticlesTable.id])
+                        }.count()
+                        val isFollowing = user?.let { followeeIds.contains(author.id) } ?: false
+
+                        result.toArticle(author, isFollowing, isFavorited, favoritesCount)
+                    }
+                }.awaitAll()
+            }
         }
     }
 
