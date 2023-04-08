@@ -3,13 +3,32 @@ package com.neptuneg.adaptor.database.gateway.repositories
 import com.neptuneg.adaptor.database.gateway.entities.ArticleEntity
 import com.neptuneg.adaptor.database.gateway.extensions.isExisting
 import com.neptuneg.adaptor.database.gateway.extensions.runTxCatching
-import com.neptuneg.adaptor.database.gateway.tables.*
+import com.neptuneg.adaptor.database.gateway.tables.ArticleFavoritesTable
+import com.neptuneg.adaptor.database.gateway.tables.ArticleTagsTable
+import com.neptuneg.adaptor.database.gateway.tables.ArticlesTable
+import com.neptuneg.adaptor.database.gateway.tables.FollowingsTable
+import com.neptuneg.adaptor.database.gateway.tables.TagsTable
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
-import com.neptuneg.domain.entities.*
+import com.neptuneg.domain.entities.Article
+import com.neptuneg.domain.entities.Pagination
+import com.neptuneg.domain.entities.Tag
+import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.ArticleRepository
 import com.neptuneg.domain.logics.FollowingRepository
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.alias
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.groupConcat
+import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.insertIgnore
+import org.jetbrains.exposed.sql.insertIgnoreAndGetId
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import java.util.*
 
 class ArticleRepositoryImpl(
@@ -80,16 +99,17 @@ class ArticleRepositoryImpl(
                 it[createdAt] = article.createdAt
                 it[updatedAt] = article.updatedAt
             }
-            article.tags.map { tag ->
-                val tagId = TagsTable.insertIgnoreAndGetId {
-                    it[value] = tag.tag
-                } ?: TagsTable.select { TagsTable.value.eq(tag.tag) }.map { it[TagsTable.id] }.single()
-                ArticleTagsTable.insertIgnore {
-                    it[ArticleTagsTable.articleId] = articleId
-                    it[ArticleTagsTable.tagId] = tagId
+            article.apply {
+                tags.map { tag ->
+                    val tagId = TagsTable.insertIgnoreAndGetId {
+                        it[value] = tag.tag
+                    } ?: TagsTable.select { TagsTable.value.eq(tag.tag) }.map { it[TagsTable.id] }.single()
+                    ArticleTagsTable.insertIgnore {
+                        it[ArticleTagsTable.articleId] = articleId
+                        it[ArticleTagsTable.tagId] = tagId
+                    }
                 }
             }
-            article
         }
     }
 
@@ -112,13 +132,13 @@ class ArticleRepositoryImpl(
 
     override fun deleteBySlug(slug: String): Result<Article> {
         return runTxCatching {
-            val article = findBySlug(slug).getOrThrow()
-            ArticlesTable.deleteWhere { ArticlesTable.slug.eq(slug) }
-            article
+            findBySlug(slug).getOrThrow().apply {
+                ArticlesTable.deleteWhere { ArticlesTable.slug.eq(slug) }
+            }
         }
     }
 
-    @Suppress("LongMethod", "SpreadOperator")
+    @Suppress("LongMethod", "SpreadOperator", "CyclomaticComplexMethod")
     override fun search(param: ArticleRepository.SearchParam, user: User?): Result<List<Article>> {
         return runTxCatching {
             val favoritedArticleIds = user?.let {

@@ -2,10 +2,11 @@ package com.neptuneg.adaptor.web.controllers
 
 import com.neptuneg.adaptor.web.presenters.TagsViewModel
 import com.neptuneg.usecase.inputport.TagUseCase
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import org.koin.java.KoinJavaComponent.inject
 
 fun Route.tag() {

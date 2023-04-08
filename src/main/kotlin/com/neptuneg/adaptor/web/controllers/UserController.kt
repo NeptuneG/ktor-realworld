@@ -11,8 +11,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
 import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -21,9 +21,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import kotlin.reflect.full.memberProperties
 import org.koin.java.KoinJavaComponent.inject
 import java.util.*
+import kotlin.reflect.full.memberProperties
 
 @Suppress("ThrowsCount")
 fun Route.user() {
@@ -48,7 +48,6 @@ fun Route.user() {
             call.respond(HttpStatusCode.OK, UserViewModel(user, token))
         }
     }
-
 
     route("/user") {
         authenticate("keycloakJWT") {

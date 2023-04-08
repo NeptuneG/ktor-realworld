@@ -6,11 +6,11 @@ import com.neptuneg.adaptor.web.utils.installContentNegotiation
 import com.neptuneg.infrastructure.serializer.Serializer
 import com.neptuneg.usecase.inputport.Sample
 import io.kotest.core.spec.style.FunSpec
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.routing.*
-import io.ktor.server.testing.*
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.routing.routing
+import io.ktor.server.testing.testApplication
 import org.koin.java.KoinJavaComponent
 import kotlin.test.assertEquals
 

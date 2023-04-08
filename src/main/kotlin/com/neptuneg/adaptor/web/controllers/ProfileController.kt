@@ -9,15 +9,14 @@ import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
-import io.ktor.server.routing.route
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.Route
+import io.ktor.server.routing.route
 import org.koin.java.KoinJavaComponent.inject
 
-fun Route.profile(
-) {
+fun Route.profile() {
     route("/profiles/{username}") {
         val profileUseCase: ProfileUseCase by inject(ProfileUseCase::class.java)
         val userUseCase: UserUseCase by inject(UserUseCase::class.java)
