@@ -40,21 +40,22 @@ class MoshiConverter(private val moshi: Moshi) : ContentConverter {
         charset: Charset,
         typeInfo: TypeInfo,
         value: Any?
-    ): OutgoingContent? {
-        if (value == null) {
-            return null
-        }
-        return TextContent(
-            moshi.adapter(value.javaClass).toJson(value),
+    ): OutgoingContent? = value?.let {
+        TextContent(
+            moshi.adapter(it.javaClass).toJson(it),
             contentType.withCharsetIfNeeded(charset)
         )
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         return withContext(Dispatchers.IO) {
-            val body = content.toInputStream().reader(charset).buffered().use { it.readText() }
-            if (body.isEmpty()) throw JsonConvertException("Empty Json data")
-            moshi.adapter(typeInfo.type.java).fromJson(body)
+            content
+                .toInputStream()
+                .reader(charset)
+                .buffered()
+                .use { it.readText() }
+                .apply { if (isEmpty()) throw JsonConvertException("can't be empty") }
+                .let { moshi.adapter(typeInfo.type.java).fromJson(it) }
         }
     }
 }

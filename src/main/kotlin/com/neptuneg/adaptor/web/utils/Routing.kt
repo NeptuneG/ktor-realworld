@@ -1,6 +1,5 @@
 package com.neptuneg.adaptor.web.utils
 
-import com.neptuneg.adaptor.web.controllers.sample
 import com.neptuneg.adaptor.web.controllers.user
 import com.neptuneg.adaptor.web.controllers.profile
 import com.neptuneg.adaptor.web.controllers.article
@@ -12,7 +11,6 @@ import io.ktor.server.routing.route
 
 fun Application.installRouting() {
     routing {
-        sample()
         route("/api") {
             user()
             profile()

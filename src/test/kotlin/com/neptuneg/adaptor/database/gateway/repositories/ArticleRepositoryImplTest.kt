@@ -1,6 +1,5 @@
 package com.neptuneg.adaptor.database.gateway.repositories
 
-import com.neptuneg.usecase.inputport.Sample
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -14,15 +13,6 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 
 class ArticleRepositoryImplTest : FunSpec({
-    context("dummy") {
-        val sample: Sample = mockk {
-            every { foobar() } returns Sample.Message("test")
-        }
-        test("test") {
-            sample.foobar().shouldBe(Sample.Message("test"))
-        }
-    }
-
     context("coroutine") {
         test("parallel map") {
             fun plusOne(a: Int) = (a + 1)
