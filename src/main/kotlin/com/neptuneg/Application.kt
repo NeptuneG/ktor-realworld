@@ -9,13 +9,13 @@ import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
 
 fun main() {
-    insertKoins()
+    insertKoins("/config.yaml")
 
     Database.connect()
     Server.serve()
 }
 
-fun insertKoins(resource: String = "/config.yaml") = startKoin {
+fun insertKoins(resource: String = "/config.sample.yaml") = startKoin {
     modules(
         configKoins(resource),
         databaseKoins,
