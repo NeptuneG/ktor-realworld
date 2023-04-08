@@ -41,7 +41,6 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-core-jvm:${versions.ktor}")
-    implementation("io.ktor:ktor-server-metrics-micrometer-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-netty-jvm:${versions.ktor}")
     implementation("io.ktor:ktor-server-auth:${versions.ktor}")
     implementation("io.ktor:ktor-server-auth-jwt:${versions.ktor}")

@@ -23,23 +23,6 @@ fun Application.installAuthentication(keycloakConfig: KeycloakConfig) {
     }
 }
 
-fun AuthenticationConfig.setupOAuth(keycloakConfig: KeycloakConfig) {
-    val keycloakOAuthProvider = OAuthServerSettings.OAuth2ServerSettings(
-        name = "keycloak",
-        authorizeUrl = keycloakConfig.authorizationEndpoint,
-        accessTokenUrl = keycloakConfig.tokenEndpoint,
-        clientId = keycloakConfig.clientId,
-        clientSecret = keycloakConfig.clientSecret,
-        requestMethod = HttpMethod.Post,
-    )
-
-    oauth("keycloakOAuth") {
-        client = HttpClient(Apache)
-        providerLookup = { keycloakOAuthProvider }
-        urlProvider = { keycloakConfig.redirectUri }
-    }
-}
-
 @Suppress("MagicNumber")
 fun AuthenticationConfig.setupJWT(keycloakConfig: KeycloakConfig) {
     val provider = UrlJwkProvider(URI(keycloakConfig.jwksUri).normalize().toURL())
@@ -50,7 +33,7 @@ fun AuthenticationConfig.setupJWT(keycloakConfig: KeycloakConfig) {
         authSchemes("Token")
         verifier(provider, keycloakConfig.jwtIssuer) { acceptLeeway(3) }
         validate { credential ->
-            if (credential.payload.getClaim("email").asString() != "") {
+            if (credential.payload.getClaim("email").asString().isNotEmpty()) {
                 JWTPrincipal(credential.payload)
             } else {
                 null
