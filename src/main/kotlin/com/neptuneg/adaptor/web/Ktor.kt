@@ -4,6 +4,7 @@ import com.neptuneg.Server
 import com.neptuneg.adaptor.web.utils.installAuthentication
 import com.neptuneg.adaptor.web.utils.installCallLogging
 import com.neptuneg.adaptor.web.utils.installContentNegotiation
+import com.neptuneg.adaptor.web.utils.installErrorHandler
 import com.neptuneg.adaptor.web.utils.installRouting
 import com.neptuneg.infrastructure.config.ServerConfig
 import io.ktor.server.engine.embeddedServer
@@ -18,6 +19,7 @@ class Ktor(
             installContentNegotiation()
             installAuthentication(serverConfig.keycloak)
             installRouting()
+            installErrorHandler()
         }.start(wait = true)
     }
 }
