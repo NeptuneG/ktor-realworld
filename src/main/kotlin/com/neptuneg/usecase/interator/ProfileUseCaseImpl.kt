@@ -1,16 +1,19 @@
 package com.neptuneg.usecase.interator
 
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
-import com.neptuneg.domain.entity.Following
-import com.neptuneg.domain.entity.Profile
-import com.neptuneg.domain.entity.User
-import com.neptuneg.domain.logic.FollowingRepository
+import com.neptuneg.domain.entities.Following
+import com.neptuneg.domain.entities.Profile
+import com.neptuneg.domain.entities.User
+import com.neptuneg.domain.logics.FollowingRepository
 import com.neptuneg.usecase.inputport.ProfileUseCase
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 
 class ProfileUseCaseImpl(
     private val followingRepository: FollowingRepository,
     private val keycloakService: KeycloakService,
-): ProfileUseCase {
+) : ProfileUseCase {
     override fun get(follower: User?, followee: User): Result<Profile> {
         return runCatching {
             val isFollowing = follower?.let { follower ->
@@ -35,10 +38,12 @@ class ProfileUseCaseImpl(
 
     override fun findFollowees(follower: User): Result<List<Profile>> {
         return followingRepository.findFolloweeIds(follower).mapCatching { followeeIds ->
-            followeeIds.map { followeeId ->
-                keycloakService
-                    .findUser(followeeId)
-                    .map { it.profile(true) }.getOrThrow()
+            runBlocking {
+                followeeIds.map { followeeId ->
+                    async {
+                        keycloakService.findUser(followeeId).map { it.profile(true) }.getOrThrow()
+                    }
+                }.awaitAll()
             }
         }
     }

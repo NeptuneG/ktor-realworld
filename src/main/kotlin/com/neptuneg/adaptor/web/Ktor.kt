@@ -1,11 +1,11 @@
 package com.neptuneg.adaptor.web
 
 import com.neptuneg.Server
-import com.neptuneg.adaptor.web.util.installAuthentication
-import com.neptuneg.adaptor.web.util.installCallLogging
-import com.neptuneg.adaptor.web.util.installContentNegotiation
-import com.neptuneg.adaptor.web.util.installMicrometerMetrics
-import com.neptuneg.adaptor.web.util.installRouting
+import com.neptuneg.adaptor.web.utils.installAuthentication
+import com.neptuneg.adaptor.web.utils.installCallLogging
+import com.neptuneg.adaptor.web.utils.installContentNegotiation
+import com.neptuneg.adaptor.web.utils.installMicrometerMetrics
+import com.neptuneg.adaptor.web.utils.installRouting
 import com.neptuneg.infrastructure.config.ServerConfig
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty

@@ -1,7 +1,7 @@
 package com.neptuneg.usecase.interator
 
 import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
-import com.neptuneg.domain.entity.User
+import com.neptuneg.domain.entities.User
 import com.neptuneg.usecase.inputport.UserUseCase
 import java.util.*
 
