@@ -2,6 +2,7 @@ package com.neptuneg.adaptor.web.controllers
 
 import com.neptuneg.adaptor.web.presenters.CommentViewModel
 import com.neptuneg.adaptor.web.presenters.CommentsViewModel
+import com.neptuneg.adaptor.web.utils.authorizeOnComment
 import com.neptuneg.autogen.model.CreateArticleCommentRequest
 import com.neptuneg.usecase.inputport.CommentUseCase
 import io.ktor.http.HttpStatusCode
@@ -40,9 +41,13 @@ fun Route.comment() {
             }
 
             authenticate("keycloakJWT") {
-                delete("/{commentId}") {
-                    val comment = commentUseCase.delete(call.commentId).getOrThrow()
-                    call.respond(HttpStatusCode.OK, CommentViewModel(comment))
+                route("/{commentId}") {
+                    authorizeOnComment {
+                        delete {
+                            val comment = commentUseCase.delete(call.commentId).getOrThrow()
+                            call.respond(HttpStatusCode.OK, CommentViewModel(comment))
+                        }
+                    }
                 }
             }
         }

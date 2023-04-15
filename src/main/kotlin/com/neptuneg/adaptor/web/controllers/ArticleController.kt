@@ -2,6 +2,7 @@ package com.neptuneg.adaptor.web.controllers
 
 import com.neptuneg.adaptor.web.presenters.ArticleViewModel
 import com.neptuneg.adaptor.web.presenters.ArticlesViewModel
+import com.neptuneg.adaptor.web.utils.authorizeOnArticle
 import com.neptuneg.autogen.model.CreateArticleRequest
 import com.neptuneg.autogen.model.NewArticle
 import com.neptuneg.autogen.model.UpdateArticleRequest
@@ -56,15 +57,17 @@ fun Route.article() {
             }
 
             route("/{slug}") {
-                put {
-                    val param = call.receive<UpdateArticleRequest>().toUpdateParam()
-                    val article = articleUseCase.update(call.slug, param).getOrThrow()
-                    call.respond(HttpStatusCode.OK, ArticleViewModel(article))
-                }
+                authorizeOnArticle {
+                    put {
+                        val param = call.receive<UpdateArticleRequest>().toUpdateParam()
+                        val article = articleUseCase.update(call.slug, param).getOrThrow()
+                        call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                    }
 
-                delete {
-                    val article = articleUseCase.delete(call.slug).getOrThrow()
-                    call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                    delete {
+                        val article = articleUseCase.delete(call.slug).getOrThrow()
+                        call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                    }
                 }
 
                 route("/favorite") {
