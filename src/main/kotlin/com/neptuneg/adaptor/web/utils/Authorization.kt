@@ -24,7 +24,7 @@ val ArticleAuthorizationInterpreter = createRouteScopedPlugin("ArticleAuthorizat
         }
     }
 
-    onCall { call ->
+    onCallReceive { call ->
         runCatching {
             authorize(call.userId!!, call.slug).getOrThrow()
         }.onFailure {
@@ -43,7 +43,7 @@ val CommentAuthorizationInterpreter = createRouteScopedPlugin("CommentAuthorizat
         }
     }
 
-    onCall { call ->
+    onCallReceive { call ->
         runCatching {
             authorize(call.userId!!, call.commentId).getOrThrow()
         }.onFailure {
