@@ -1,7 +1,6 @@
 package com.neptuneg.adaptor.web.controllers
 
 import com.neptuneg.adaptor.web.presenters.ProfileViewModel
-import com.neptuneg.usecase.inputport.ProfileUseCase
 import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -18,32 +17,28 @@ import org.koin.java.KoinJavaComponent.inject
 
 fun Route.profile() {
     route("/profiles/{username}") {
-        val profileUseCase: ProfileUseCase by inject(ProfileUseCase::class.java)
         val userUseCase: UserUseCase by inject(UserUseCase::class.java)
 
         authenticate("keycloakJWT", optional = true) {
             get {
-                val follower = call.accessToken?.let { userUseCase.findByToken(it).getOrThrow() }
-                val followee = userUseCase.findByUsername(call.username).getOrThrow()
-                val profile = profileUseCase.get(follower, followee).getOrThrow()
-                call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
+                val visitorId = call.userId
+                val user = userUseCase.find(call.username).getOrThrow()
+                call.respond(HttpStatusCode.OK, ProfileViewModel(user, visitorId))
             }
         }
 
         authenticate("keycloakJWT") {
             route("/follow") {
                 post {
-                    val follower = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                    val followee = userUseCase.findByUsername(call.username).getOrThrow()
-                    val profile = profileUseCase.follow(follower, followee).getOrThrow()
-                    call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
+                    val visitorId = call.userId!!
+                    val followingUser = userUseCase.follow(visitorId, call.username).getOrThrow()
+                    call.respond(HttpStatusCode.OK, ProfileViewModel(followingUser, visitorId))
                 }
 
                 delete {
-                    val follower = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                    val followee = userUseCase.findByUsername(call.username).getOrThrow()
-                    val profile = profileUseCase.unfollow(follower, followee).getOrThrow()
-                    call.respond(HttpStatusCode.OK, ProfileViewModel(profile))
+                    val visitorId = call.userId!!
+                    val followingUser = userUseCase.unfollow(visitorId, call.username).getOrThrow()
+                    call.respond(HttpStatusCode.OK, ProfileViewModel(followingUser, visitorId))
                 }
             }
         }

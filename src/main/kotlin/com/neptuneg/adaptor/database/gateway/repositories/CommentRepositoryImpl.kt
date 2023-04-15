@@ -3,28 +3,38 @@ package com.neptuneg.adaptor.database.gateway.repositories
 import com.neptuneg.adaptor.database.gateway.extensions.runTxCatching
 import com.neptuneg.adaptor.database.gateway.tables.ArticlesTable
 import com.neptuneg.adaptor.database.gateway.tables.CommentsTable
-import com.neptuneg.adaptor.keycloak.gateway.KeycloakService
 import com.neptuneg.domain.entities.Comment
 import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.CommentRepository
-import com.neptuneg.domain.logics.FollowingRepository
+import com.neptuneg.domain.logics.UserRepository
+import com.neptuneg.infrastructure.timezone.now
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.select
+import java.util.*
 
 class CommentRepositoryImpl(
-    private val followingRepository: FollowingRepository,
-    private val keycloakService: KeycloakService,
+    private val userRepository: UserRepository
 ) : CommentRepository {
-    override fun getArticleComments(articleSlug: String, user: User?): Result<List<Comment>> {
+    override fun find(id: Int): Result<Comment> {
         return runTxCatching {
-            val followeeIds = user?.let {
-                followingRepository.findFolloweeIds(user).getOrThrow()
-            } ?: emptyList()
+            CommentsTable
+                .select { CommentsTable.id.eq(id) }
+                .map {
+                    val author = userRepository.find(it[CommentsTable.authorId]).getOrThrow()
+                    it.toComment(author)
+                }
+                .single()
+        }
+    }
+
+    override fun list(articleSlug: String): Result<List<Comment>> {
+        return runTxCatching {
             val result = CommentsTable.innerJoin(ArticlesTable)
                 .slice(CommentsTable.columns)
                 .select { ArticlesTable.slug.eq(articleSlug) }
@@ -32,56 +42,46 @@ class CommentRepositoryImpl(
             runBlocking {
                 result.map {
                     async {
-                        val author = keycloakService.findUser(it[CommentsTable.authorId]).getOrThrow()
-                        Comment(
-                            id = it[CommentsTable.id].value,
-                            body = it[CommentsTable.body],
-                            createdAt = it[CommentsTable.createdAt],
-                            updatedAt = it[CommentsTable.updatedAt],
-                            author = author.profile(followeeIds.contains(author.id))
-                        )
+                        val author = userRepository.find(it[CommentsTable.authorId]).getOrThrow()
+                        it.toComment(author)
                     }
                 }.awaitAll()
             }
         }
     }
 
-    override fun createComment(articleSlug: String, comment: Comment): Result<Comment> {
+    override fun create(authorId: UUID, articleSlug: String, body: String): Result<Comment> {
         return runTxCatching {
+            val now = now()
             val articleId = ArticlesTable
                 .slice(ArticlesTable.id)
                 .select(ArticlesTable.slug.eq(articleSlug))
                 .map { it[ArticlesTable.id] }
                 .single()
-            val id = CommentsTable.insertAndGetId {
+            val author = userRepository.find(authorId).getOrThrow()
+            CommentsTable.insertAndGetId {
                 it[CommentsTable.articleId] = articleId
-                it[authorId] = comment.author.user.id
-                it[body] = comment.body
-                it[createdAt] = comment.createdAt
-                it[updatedAt] = comment.updatedAt
+                it[CommentsTable.authorId] = authorId
+                it[CommentsTable.body] = body
+                it[createdAt] = now
+                it[updatedAt] = now
+            }.let {
+                Comment(it.value, body, now, now, author)
             }
-            comment.withId(id.value)
         }
     }
 
-    override fun deleteComment(commentId: Int): Result<Comment> {
+    override fun delete(comment: Comment): Result<Unit> {
         return runTxCatching {
-            CommentsTable
-                .select { CommentsTable.id.eq(commentId) }
-                .map {
-                    val author = keycloakService.findUser(it[CommentsTable.authorId]).getOrThrow()
-                    Comment(
-                        id = it[CommentsTable.id].value,
-                        body = it[CommentsTable.body],
-                        createdAt = it[CommentsTable.createdAt],
-                        updatedAt = it[CommentsTable.updatedAt],
-                        author = author.profile()
-                    )
-                }
-                .single()
-                .apply {
-                    CommentsTable.deleteWhere { CommentsTable.id.eq(commentId) }
-                }
+            CommentsTable.deleteWhere { CommentsTable.id.eq(comment.id) }
         }
     }
+
+    private fun ResultRow.toComment(author: User) = Comment(
+        id = this[CommentsTable.id].value,
+        body = this[CommentsTable.body],
+        createdAt = this[CommentsTable.createdAt],
+        updatedAt = this[CommentsTable.updatedAt],
+        author = author
+    )
 }

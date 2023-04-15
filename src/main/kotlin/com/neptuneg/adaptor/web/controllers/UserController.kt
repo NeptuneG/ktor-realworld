@@ -31,48 +31,36 @@ fun Route.user() {
 
     route("/users") {
         post {
-            val request = call.receive<CreateUserRequest>()
-            val user = userUseCase.create(request.user.username, request.user.email, request.user.password).getOrThrow()
-            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-
-            call.respond(
-                HttpStatusCode.Created,
-                UserViewModel(user, token)
-            )
+            val request = call.receive<CreateUserRequest>().user
+            val user = userUseCase.register(request.username, request.email, request.password).getOrThrow()
+            call.respond(HttpStatusCode.Created, UserViewModel(user))
         }
 
         post("/login") {
-            val request = call.receive<LoginRequest>()
-            val token = userUseCase.requestToken(request.user.email, request.user.password).getOrThrow()
-            val user = userUseCase.findByToken(token).getOrThrow()
-            call.respond(HttpStatusCode.OK, UserViewModel(user, token))
+            val request = call.receive<LoginRequest>().user
+            val user = userUseCase.login(request.email, request.password).getOrThrow()
+            call.respond(HttpStatusCode.OK, UserViewModel(user))
         }
     }
 
     route("/user") {
         authenticate("keycloakJWT") {
             get {
-                val token = call.accessToken!!
-                val user = userUseCase.findByToken(token).getOrThrow()
-                call.respond(HttpStatusCode.OK, UserViewModel(user, token))
+                val user = userUseCase.find(call.userId!!).getOrThrow()
+                call.respond(HttpStatusCode.OK, UserViewModel(user, call.accessToken!!))
             }
 
             put {
-                val userId = UUID.fromString(call.payload.subject)
                 val userAttributes = call.receive<UpdateCurrentUserRequest>().user.toMap()
-                userUseCase.update(userId, userAttributes).onSuccess {
-                    val token = call.accessToken!!
-                    val user = userUseCase.findByToken(token).getOrThrow()
-                    call.respond(HttpStatusCode.OK, UserViewModel(user, token))
-                }.onFailure {
-                    call.respond(HttpStatusCode.UnprocessableEntity)
-                }
+                val user = userUseCase.updateProfile(call.userId!!, userAttributes).getOrThrow()
+                call.respond(HttpStatusCode.OK, UserViewModel(user, call.accessToken!!))
             }
         }
     }
 }
 
 internal val ApplicationCall.accessToken: String? get() = request.header("Authorization")?.removePrefix("Token ")
-internal val ApplicationCall.payload: Payload get() = principal<JWTPrincipal>()!!.payload
+internal val ApplicationCall.payload: Payload? get() = principal<JWTPrincipal>()?.payload
+internal val ApplicationCall.userId: UUID? get() = payload?.let { UUID.fromString(it.subject) }
 internal fun UpdateUser.toMap(): Map<String, String?> =
     UpdateUser::class.memberProperties.associate { it.name to it.get(this) as String? }

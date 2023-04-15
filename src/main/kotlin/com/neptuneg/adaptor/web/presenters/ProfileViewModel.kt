@@ -2,15 +2,18 @@ package com.neptuneg.adaptor.web.presenters
 
 import com.neptuneg.autogen.model.GetProfileByUsername200Response
 import com.neptuneg.autogen.model.Profile
-import com.neptuneg.domain.entities.Profile as DomainProfile
+import java.util.*
+import com.neptuneg.domain.entities.User as DomainUser
 
 object ProfileViewModel {
-    operator fun invoke(profile: DomainProfile) = GetProfileByUsername200Response(profile = profile.toView())
+    operator fun invoke(user: DomainUser, visitorId: UUID?) = GetProfileByUsername200Response(
+        profile = user.toProfile(visitorId)
+    )
 }
 
-internal fun DomainProfile.toView() = Profile(
-    username = user.username,
-    bio = user.bio,
-    image = user.image,
-    following = following
+internal fun DomainUser.toProfile(visitorId: UUID?) = Profile(
+    username = username,
+    bio = bio,
+    image = image,
+    following = visitorId?.let { followerIds.contains(visitorId) } ?: false
 )

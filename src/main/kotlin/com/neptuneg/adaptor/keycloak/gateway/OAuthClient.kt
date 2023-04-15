@@ -19,7 +19,7 @@ internal object OAuthClient {
         val image: String?,
     )
 
-    val client: OkHttpClient by lazy {
+    private val client: OkHttpClient by lazy {
         OkHttpClient.Builder().build()
     }
 

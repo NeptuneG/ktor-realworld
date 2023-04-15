@@ -1,52 +1,45 @@
 package com.neptuneg.adaptor.database.gateway.repositories
 
-import com.neptuneg.adaptor.database.gateway.entities.FollowingEntity
-import com.neptuneg.adaptor.database.gateway.extensions.isExisting
 import com.neptuneg.adaptor.database.gateway.extensions.runTxCatching
 import com.neptuneg.adaptor.database.gateway.tables.FollowingsTable
-import com.neptuneg.domain.entities.Following
-import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.FollowingRepository
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.batchInsert
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import java.util.*
 
 class FollowingRepositoryImpl : FollowingRepository {
-    override fun isExisting(followerId: UUID, followeeId: UUID): Result<Boolean> {
+    override fun deleteByFollowingUserId(followingUserId: UUID): Result<Unit> {
         return runTxCatching {
-            FollowingsTable.isExisting { by(followerId, followeeId) }
+            FollowingsTable.deleteWhere { FollowingsTable.followingUserId.eq(followingUserId) }
         }
     }
 
-    override fun create(following: Following): Result<Unit> {
+    override fun listFollowerIds(followingUserId: UUID): Result<List<UUID>> {
         return runTxCatching {
-            FollowingEntity.new {
-                followerId = following.followerId
-                followeeId = following.followeeId
+            FollowingsTable
+                .slice(FollowingsTable.followerId)
+                .select { FollowingsTable.followingUserId.eq(followingUserId) }
+                .map { it[FollowingsTable.followerId] }
+        }
+    }
+
+    override fun listFollowingUserIds(followerId: UUID): Result<List<UUID>> {
+        return runTxCatching {
+            FollowingsTable
+                .slice(FollowingsTable.followerId)
+                .select { FollowingsTable.followingUserId.eq(followerId) }
+                .map { it[FollowingsTable.followerId] }
+        }
+    }
+
+    override fun batchCreate(followingUserId: UUID, followerIds: List<UUID>): Result<Unit> {
+        return runTxCatching {
+            FollowingsTable.batchInsert(followerIds) {
+                this[FollowingsTable.followerId] = it
+                this[FollowingsTable.followingUserId] = followingUserId
             }
         }
     }
-
-    override fun delete(following: Following): Result<Unit> {
-        return runTxCatching {
-            FollowingEntity.find { by(following) }.first().delete()
-        }
-    }
-
-    override fun findFolloweeIds(follower: User): Result<List<UUID>> {
-        return runTxCatching {
-            FollowingsTable
-                .slice(FollowingsTable.followeeId)
-                .select { FollowingsTable.followerId.eq(follower.id) }
-                .map { it[FollowingsTable.followeeId] }
-        }
-    }
-
-    private fun SqlExpressionBuilder.by(following: Following) =
-        (FollowingsTable.followerId eq following.followerId)
-            .and(FollowingsTable.followeeId eq following.followeeId)
-    private fun SqlExpressionBuilder.by(followerId: UUID, followeeId: UUID) =
-        (FollowingsTable.followerId eq followerId)
-            .and(FollowingsTable.followeeId eq followeeId)
 }
