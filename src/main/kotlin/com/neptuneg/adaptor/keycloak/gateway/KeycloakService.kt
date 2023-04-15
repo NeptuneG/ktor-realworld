@@ -1,15 +1,15 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
-import com.neptuneg.domain.entities.User
+import com.neptuneg.infrastructure.config.KeycloakConfig
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
-import javax.ws.rs.core.Response
-import com.neptuneg.infrastructure.config.KeycloakConfig
 import java.util.UUID
+import javax.ws.rs.core.Response
 
+@Suppress("TooManyFunctions")
 class KeycloakService(
     private val config: KeycloakConfig
 ) {
@@ -17,10 +17,18 @@ class KeycloakService(
     private val adminKeycloakRealm = adminKeycloak.realm(config.realm)
     private val adminKeycloakRealmUsers = adminKeycloakRealm.users()
 
-    private val usersById: MutableMap<UUID, User> = mutableMapOf()
-    private val usersByUsername: MutableMap<String, User> = mutableMapOf()
+    private val usersById: MutableMap<UUID, KeyCloakUserProfile> = mutableMapOf()
+    private val usersByUsername: MutableMap<String, KeyCloakUserProfile> = mutableMapOf()
 
-    fun createUser(username: String, email: String, password: String): Result<User> {
+    data class KeyCloakUserProfile(
+        val id: UUID,
+        val username: String,
+        val email: String,
+        val bio: String,
+        val image: String,
+    )
+
+    fun createUser(username: String, email: String, password: String): Result<KeyCloakUserProfile> {
         val userRepresentation = buildUserRepresentation(username, email, password)
         val response = adminKeycloakRealmUsers.create(userRepresentation)
 
@@ -31,55 +39,62 @@ class KeycloakService(
         }
     }
 
-    fun findUserByToken(token: String): Result<User> {
-        return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUser() }
+    fun findUserByToken(token: String): Result<KeyCloakUserProfile> {
+        return OAuthClient.getUserInfo(config.userinfoEndpoint, token).mapCatching { it.toUserProfile() }
     }
 
-    fun findUser(id: UUID): Result<User> {
+    fun findUserById(id: UUID): Result<KeyCloakUserProfile> {
         return runCatching {
             usersById[id] ?: run {
-                adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUser().apply {
+                adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUserProfile().apply {
                     usersById[id] = this
                 }
             }
         }
     }
 
-    fun findUserByUsername(username: String): Result<User> {
+    fun findUserByUsername(username: String): Result<KeyCloakUserProfile> {
         return runCatching {
             usersByUsername[username] ?: run {
-                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUser() }.first().apply {
+                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUserProfile() }.first().apply {
                     usersByUsername[username] = this
                 }
             }
         }
     }
 
-    fun updateUser(userId: UUID, userAttributes: Map<String, String?>): Result<Unit> {
+    fun updateUser(profile: KeyCloakUserProfile): Result<Unit> {
         return runCatching {
-            val user = adminKeycloakRealmUsers.get(userId.toString())
+            val user = adminKeycloakRealmUsers.get(profile.id.toString())
             val userRepresentation = user.toRepresentation().apply {
-                userAttributes["username"]?.let { this.username = it }
-                userAttributes["email"]?.let { this.email = it }
-                userAttributes["password"]?.let { password ->
-                    this.credentials = listOf(
-                        CredentialRepresentation().apply {
-                            value = password
-                            type = CredentialRepresentation.PASSWORD
-                            isTemporary = false
-                        }
-                    )
-                }
-                userAttributes["bio"]?.let { this.singleAttribute("bio", it) }
-                userAttributes["image"]?.let { this.singleAttribute("image", it) }
+                username = profile.username
+                email = profile.email
+                singleAttribute("bio", profile.bio)
+                singleAttribute("image", profile.image)
             }
             user.update(userRepresentation).apply {
-                usersById[userId] = userRepresentation.toUser()
+                usersById[profile.id] = userRepresentation.toUserProfile()
             }
         }
     }
 
-    fun requestToken(email: String, password: String): Result<String> {
+    fun updateUserPassword(userId: UUID, password: String): Result<Unit> {
+        return runCatching {
+            val user = adminKeycloakRealmUsers.get(userId.toString())
+            val userRepresentation = user.toRepresentation().apply {
+                credentials = listOf(
+                    CredentialRepresentation().apply {
+                        value = password
+                        type = CredentialRepresentation.PASSWORD
+                        isTemporary = false
+                    }
+                )
+            }
+            user.update(userRepresentation)
+        }
+    }
+
+    fun authenticate(email: String, password: String): Result<String> {
         return runCatching {
             buildKeycloak(email, password).tokenManager().accessToken.token
         }
@@ -109,7 +124,7 @@ class KeycloakService(
         )
     }
 
-    private fun OAuthClient.OAuthUserInfo.toUser() = User(
+    private fun OAuthClient.OAuthUserInfo.toUserProfile() = KeyCloakUserProfile(
         id = sub,
         username = preferredUsername,
         email = email,
@@ -117,7 +132,7 @@ class KeycloakService(
         image = image ?: "",
     )
 
-    private fun UserRepresentation.toUser() = User(
+    private fun UserRepresentation.toUserProfile() = KeyCloakUserProfile(
         id = UUID.fromString(id),
         username = username,
         email = email,

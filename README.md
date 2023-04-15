@@ -31,4 +31,16 @@
 docker-compose exec keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --realm real-world
 ```
 
+- Run linter
+
+```bash
+./gradlew detekt --auto-correct
+```
+
+- Run API tests
+
+```bash
+./gradlew run & APIURL=http://localhost:8000/api ./spec/run-api-tests.sh
+```
+
 ## References

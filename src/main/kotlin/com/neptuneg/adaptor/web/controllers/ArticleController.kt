@@ -3,13 +3,10 @@ package com.neptuneg.adaptor.web.controllers
 import com.neptuneg.adaptor.web.presenters.ArticleViewModel
 import com.neptuneg.adaptor.web.presenters.ArticlesViewModel
 import com.neptuneg.autogen.model.CreateArticleRequest
+import com.neptuneg.autogen.model.NewArticle
 import com.neptuneg.autogen.model.UpdateArticleRequest
-import com.neptuneg.domain.entities.Article
 import com.neptuneg.domain.entities.Pagination
-import com.neptuneg.domain.entities.Profile
-import com.neptuneg.domain.entities.Tag
 import com.neptuneg.usecase.inputport.ArticleUseCase
-import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.server.application.ApplicationCall
@@ -28,67 +25,59 @@ import org.koin.java.KoinJavaComponent.inject
 
 @Suppress("LongMethod")
 fun Route.article() {
-    val userUseCase: UserUseCase by inject(UserUseCase::class.java)
     val articleUseCase: ArticleUseCase by inject(ArticleUseCase::class.java)
 
     route("/articles") {
         authenticate("keycloakJWT", optional = true) {
             get {
-                val user = call.accessToken?.let {
-                    userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                }
                 val searchParam = call.request.queryParameters.toSearchParam()
-                val articles = articleUseCase.searchArticles(user, searchParam).getOrThrow()
-                call.respond(HttpStatusCode.OK, ArticlesViewModel(articles))
+                val articles = articleUseCase.search(searchParam).getOrThrow()
+                call.respond(HttpStatusCode.OK, ArticlesViewModel(articles, call.userId))
             }
 
             get("/{slug}") {
-                val user = call.accessToken?.let {
-                    userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                }
-                val article = articleUseCase.findArticle(user, call.slug).getOrThrow()
-                call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                val article = articleUseCase.find(call.slug).getOrThrow()
+                call.respond(HttpStatusCode.OK, ArticleViewModel(article, call.userId))
             }
         }
 
         authenticate("keycloakJWT") {
             post {
-                val request = call.receive<CreateArticleRequest>()
-                val author = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                val article = articleUseCase.createArticle(request.toDomainArticle(author.profile())).getOrThrow()
+                val request = call.receive<CreateArticleRequest>().article
+                val article = articleUseCase.create(call.userId!!, request.toCreateParam()).getOrThrow()
                 call.respond(HttpStatusCode.Created, ArticleViewModel(article))
             }
 
             get("/feed") {
-                val user = userUseCase.findByToken(call.accessToken!!).getOrThrow()
+                val userId = call.userId!!
                 val pagination = call.request.queryParameters.toPagination()
-                val articles = articleUseCase.fetchUserFeed(user, pagination).getOrThrow()
-                call.respond(HttpStatusCode.OK, ArticlesViewModel(articles))
+                val articles = articleUseCase.listUserFeed(userId, pagination).getOrThrow()
+                call.respond(HttpStatusCode.OK, ArticlesViewModel(articles, userId))
             }
 
             route("/{slug}") {
                 put {
                     val param = call.receive<UpdateArticleRequest>().toUpdateParam()
-                    val article = articleUseCase.updateArticle(call.slug, param).getOrThrow()
+                    val article = articleUseCase.update(call.slug, param).getOrThrow()
                     call.respond(HttpStatusCode.OK, ArticleViewModel(article))
                 }
 
                 delete {
-                    val article = articleUseCase.deleteArticle(call.slug).getOrThrow()
+                    val article = articleUseCase.delete(call.slug).getOrThrow()
                     call.respond(HttpStatusCode.OK, ArticleViewModel(article))
                 }
 
                 route("/favorite") {
                     post {
-                        val user = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                        val article = articleUseCase.favoriteArticle(user, call.slug).getOrThrow()
-                        call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                        val userId = call.userId!!
+                        val article = articleUseCase.favoriteArticle(userId, call.slug).getOrThrow()
+                        call.respond(HttpStatusCode.OK, ArticleViewModel(article, userId))
                     }
 
                     delete {
-                        val user = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                        val article = articleUseCase.unfavoriteArticle(user, call.slug).getOrThrow()
-                        call.respond(HttpStatusCode.OK, ArticleViewModel(article))
+                        val userId = call.userId!!
+                        val article = articleUseCase.unfavoriteArticle(userId, call.slug).getOrThrow()
+                        call.respond(HttpStatusCode.OK, ArticleViewModel(article, userId))
                     }
                 }
             }
@@ -99,15 +88,8 @@ fun Route.article() {
 internal val ApplicationCall.slug: String get() = parameters["slug"]
     ?: throw BadRequestException("slug is required")
 
-internal fun CreateArticleRequest.toDomainArticle(author: Profile) = article.let {
-    Article(
-        title = it.title,
-        description = it.description,
-        body = it.body,
-        tags = it.tagList?.map { tag -> Tag(tag) } ?: emptyList(),
-        author = author
-    )
-}
+internal fun NewArticle.toCreateParam() =
+    ArticleUseCase.CreateParam(title, description, body, tagList ?: emptyList())
 
 internal fun Parameters.toPagination() = Pagination(
     offset = this["offset"]?.toLong() ?: Pagination.defaultOffset,
@@ -121,8 +103,5 @@ internal fun Parameters.toSearchParam() = ArticleUseCase.SearchParam(
     pagination = toPagination()
 )
 
-internal fun UpdateArticleRequest.toUpdateParam() = ArticleUseCase.UpdateArticleParam(
-    title = article.title,
-    description = article.description,
-    body = article.body
-)
+internal fun UpdateArticleRequest.toUpdateParam() =
+    ArticleUseCase.UpdateParam(article.title, article.description, article.body)

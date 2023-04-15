@@ -2,57 +2,67 @@ package com.neptuneg.usecase.interator
 
 import com.neptuneg.domain.entities.Article
 import com.neptuneg.domain.entities.Pagination
-import com.neptuneg.domain.entities.User
 import com.neptuneg.domain.logics.ArticleRepository
-import com.neptuneg.domain.logics.FavoriteRepository
 import com.neptuneg.usecase.inputport.ArticleUseCase
+import java.util.*
 
 class ArticleUseCaseImpl(
     private val articleRepository: ArticleRepository,
-    private val favoriteRepository: FavoriteRepository,
 ) : ArticleUseCase {
-    override fun createArticle(article: Article): Result<Article> {
-        return articleRepository.create(article)
+    override fun create(authorId: UUID, param: ArticleUseCase.CreateParam): Result<Article> {
+        return articleRepository.create(authorId, param.toRepositoryParam())
     }
 
-    override fun findArticle(user: User?, slug: String): Result<Article> {
-        return articleRepository.findBySlug(slug, user)
+    override fun find(slug: String): Result<Article> {
+        return articleRepository.find(slug)
     }
 
-    override fun fetchUserFeed(user: User, pagination: Pagination): Result<List<Article>> {
-        return articleRepository.fetchUserFeed(user, pagination)
+    override fun listUserFeed(userId: UUID, pagination: Pagination): Result<List<Article>> {
+        return articleRepository.listUserFeed(userId, pagination)
     }
 
-    override fun searchArticles(user: User?, param: ArticleUseCase.SearchParam): Result<List<Article>> {
-        return articleRepository.search(param.toRepositoryParam(), user)
+    override fun search(param: ArticleUseCase.SearchParam): Result<List<Article>> {
+        return articleRepository.search(param.toRepositoryParam())
     }
 
-    override fun updateArticle(slug: String, param: ArticleUseCase.UpdateArticleParam): Result<Article> {
-        return articleRepository.updateBySlug(slug, param.toRepositoryParam())
+    override fun update(slug: String, param: ArticleUseCase.UpdateParam): Result<Article> {
+        return articleRepository.find(slug).map { article ->
+            param.title?.apply { article.title = this }
+            param.description?.apply { article.description = this }
+            param.body?.apply { article.body = this }
+            articleRepository.update(article).getOrThrow()
+
+            article
+        }
     }
 
-    override fun deleteArticle(slug: String): Result<Article> {
-        return articleRepository.deleteBySlug(slug)
+    override fun delete(slug: String): Result<Article> {
+        return articleRepository.find(slug).onSuccess {
+            articleRepository.delete(it).getOrThrow()
+        }
     }
 
-    override fun favoriteArticle(user: User, slug: String): Result<Article> {
-        return favoriteRepository.favoriteBySlug(user, slug)
+    override fun favoriteArticle(userId: UUID, slug: String): Result<Article> {
+        return articleRepository.find(slug).map { article ->
+            article.favoriterIds.add(userId)
+            articleRepository.updateFavoriterIds(article).getOrThrow()
+
+            article
+        }
     }
 
-    override fun unfavoriteArticle(user: User, slug: String): Result<Article> {
-        return favoriteRepository.unfavoriteBySlug(user, slug)
+    override fun unfavoriteArticle(userId: UUID, slug: String): Result<Article> {
+        return articleRepository.find(slug).map { article ->
+            article.favoriterIds.remove(userId)
+            articleRepository.updateFavoriterIds(article).getOrThrow()
+
+            article
+        }
     }
 
-    private fun ArticleUseCase.SearchParam.toRepositoryParam() = ArticleRepository.SearchParam(
-        tag = tag,
-        authorName = authorName,
-        favoritedUserName = favoritedUserName,
-        pagination = pagination,
-    )
+    private fun ArticleUseCase.CreateParam.toRepositoryParam() =
+        ArticleRepository.CreateParam(title, description, body, tags)
 
-    private fun ArticleUseCase.UpdateArticleParam.toRepositoryParam() = ArticleRepository.UpdateArticleParam(
-        title = title,
-        description = description,
-        body = body,
-    )
+    private fun ArticleUseCase.SearchParam.toRepositoryParam() =
+        ArticleRepository.SearchParam(tag, authorName, favoritedUserName, pagination)
 }

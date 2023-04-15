@@ -2,13 +2,14 @@ package com.neptuneg.adaptor.web.presenters
 
 import com.neptuneg.autogen.model.Article
 import com.neptuneg.autogen.model.CreateArticle201Response
+import java.util.*
 import com.neptuneg.domain.entities.Article as DomainArticle
 
 object ArticleViewModel {
-    operator fun invoke(article: DomainArticle) = CreateArticle201Response(article = article.toView())
+    operator fun invoke(article: DomainArticle, userId: UUID? = null) = CreateArticle201Response(article.toView(userId))
 }
 
-internal fun DomainArticle.toView() = Article(
+internal fun DomainArticle.toView(userId: UUID?) = Article(
     slug = slug,
     title = title,
     description = description,
@@ -16,7 +17,7 @@ internal fun DomainArticle.toView() = Article(
     tagList = tags.map { it.tag }.sorted(),
     createdAt = createdAt,
     updatedAt = updatedAt,
-    favorited = favorited,
-    favoritesCount = favoritesCount.toInt(),
-    author = author.toView()
+    favorited = userId?.let { favoriterIds.contains(it) } ?: false,
+    favoritesCount = favoriterIds.size,
+    author = author.toProfile(userId)
 )

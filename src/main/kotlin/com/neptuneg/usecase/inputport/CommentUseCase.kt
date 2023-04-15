@@ -1,10 +1,10 @@
 package com.neptuneg.usecase.inputport
 
 import com.neptuneg.domain.entities.Comment
-import com.neptuneg.domain.entities.User
+import java.util.*
 
 interface CommentUseCase {
-    fun getArticleComments(articleSlug: String, user: User?): Result<List<Comment>>
-    fun createComment(articleSlug: String, comment: Comment): Result<Comment>
-    fun deleteComment(commentId: Int): Result<Comment>
+    fun list(articleSlug: String): Result<List<Comment>>
+    fun create(authorId: UUID, articleSlug: String, body: String): Result<Comment>
+    fun delete(id: Int): Result<Comment>
 }

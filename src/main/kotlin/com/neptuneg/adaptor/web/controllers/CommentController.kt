@@ -3,9 +3,7 @@ package com.neptuneg.adaptor.web.controllers
 import com.neptuneg.adaptor.web.presenters.CommentViewModel
 import com.neptuneg.adaptor.web.presenters.CommentsViewModel
 import com.neptuneg.autogen.model.CreateArticleCommentRequest
-import com.neptuneg.domain.entities.Comment
 import com.neptuneg.usecase.inputport.CommentUseCase
-import com.neptuneg.usecase.inputport.UserUseCase
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -21,31 +19,29 @@ import io.ktor.server.routing.route
 import org.koin.java.KoinJavaComponent.inject
 
 fun Route.comment() {
-    val userUseCase: UserUseCase by inject(UserUseCase::class.java)
     val commentUseCase: CommentUseCase by inject(CommentUseCase::class.java)
 
     route("/articles/{slug}") {
         route("/comments") {
             authenticate("keycloakJWT", optional = true) {
                 get {
-                    val user = call.accessToken?.let { userUseCase.findByToken(it).getOrThrow() }
-                    val comments = commentUseCase.getArticleComments(call.slug, user).getOrThrow()
-                    call.respond(HttpStatusCode.OK, CommentsViewModel(comments))
+                    val comments = commentUseCase.list(call.slug).getOrThrow()
+                    call.respond(HttpStatusCode.OK, CommentsViewModel(comments, call.userId))
                 }
             }
 
             authenticate("keycloakJWT") {
                 post {
+                    val userId = call.userId!!
                     val body = call.receive<CreateArticleCommentRequest>().comment.body
-                    val author = userUseCase.findByToken(call.accessToken!!).getOrThrow()
-                    val comment = commentUseCase.createComment(call.slug, Comment(body, author.profile())).getOrThrow()
+                    val comment = commentUseCase.create(userId, call.slug, body).getOrThrow()
                     call.respond(HttpStatusCode.OK, CommentViewModel(comment))
                 }
             }
 
             authenticate("keycloakJWT") {
                 delete("/{commentId}") {
-                    val comment = commentUseCase.deleteComment(call.commentId).getOrThrow()
+                    val comment = commentUseCase.delete(call.commentId).getOrThrow()
                     call.respond(HttpStatusCode.OK, CommentViewModel(comment))
                 }
             }
