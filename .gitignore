@@ -48,3 +48,5 @@ exported-keycloak-realm
 /gen/src/main/kotlin/com/neptuneg/autogen/*
 /gen/src/main/kotlin/org
 !/gen/src/main/kotlin/com/neptuneg/autogen/model
+
+.DS_Store
