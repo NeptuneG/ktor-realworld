@@ -1,6 +1,7 @@
 package com.neptuneg.adaptor.web.utils
 
 import com.neptuneg.infrastructure.exceptions.ConflictException
+import com.neptuneg.infrastructure.exceptions.ForbiddenException
 import com.neptuneg.infrastructure.exceptions.NotFoundException
 import com.neptuneg.infrastructure.exceptions.UnexpectedException
 import com.neptuneg.infrastructure.exceptions.UnprocessableEntityException
@@ -29,6 +30,7 @@ internal fun Throwable.toResponseByStatusCode(): Pair<HttpStatusCode, ErrorRespo
         is NotFoundException -> HttpStatusCode.NotFound
         is UnprocessableEntityException -> HttpStatusCode.UnprocessableEntity
         is ConflictException -> HttpStatusCode.UnprocessableEntity
+        is ForbiddenException -> HttpStatusCode.Forbidden
         else -> HttpStatusCode.InternalServerError
     }.let { it to ErrorResponse(message) }
 }
