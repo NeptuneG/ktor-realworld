@@ -3,9 +3,7 @@ object versions {
     const val kotlin = "1.8.10"
     const val logback = "1.2.11"
     const val postgres = "42.5.1"
-    const val h2 = "2.1.214"
     const val exposed = "0.41.1"
-    const val prometheus = "1.6.3"
     const val koin = "3.3.3"
     const val hoplite = "2.7.2"
     const val hikariCP = "5.0.1"
@@ -15,6 +13,7 @@ object versions {
     const val okhttp = "4.10.0"
     const val kotest = "5.5.5"
     const val mockk = "1.13.4"
+    const val flyway = "9.16.3"
 }
 
 plugins {
@@ -65,14 +64,12 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${versions.kotlin}")
 
     implementation("org.postgresql:postgresql:${versions.postgres}")
-    implementation("com.h2database:h2:${versions.h2}")
+    testImplementation("org.flywaydb:flyway-core:${versions.flyway}")
 
     implementation("org.jetbrains.exposed:exposed-core:${versions.exposed}")
     implementation("org.jetbrains.exposed:exposed-dao:${versions.exposed}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${versions.exposed}")
     implementation("com.zaxxer:HikariCP:${versions.hikariCP}")
-
-    implementation("io.micrometer:micrometer-registry-prometheus:${versions.prometheus}")
 
     implementation("ch.qos.logback:logback-classic:${versions.logback}")
 
