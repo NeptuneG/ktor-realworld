@@ -1,5 +1,6 @@
 package com.neptuneg.adaptor.keycloak.gateway
 
+import com.neptuneg.infrastructure.cache.InMemCache
 import com.neptuneg.infrastructure.config.KeycloakConfig
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
@@ -17,8 +18,8 @@ class KeycloakService(
     private val adminKeycloakRealm = adminKeycloak.realm(config.realm)
     private val adminKeycloakRealmUsers = adminKeycloakRealm.users()
 
-    private val usersById: MutableMap<UUID, KeyCloakUserProfile> = mutableMapOf()
-    private val usersByUsername: MutableMap<String, KeyCloakUserProfile> = mutableMapOf()
+    private val usersById: InMemCache<UUID, KeyCloakUserProfile> = InMemCache.emptyCache()
+    private val usersByUsername: InMemCache<String, KeyCloakUserProfile> = InMemCache.emptyCache()
 
     data class KeyCloakUserProfile(
         val id: UUID,
@@ -45,20 +46,14 @@ class KeycloakService(
 
     fun findUserById(id: UUID): Result<KeyCloakUserProfile> {
         return runCatching {
-            usersById[id] ?: run {
-                adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUserProfile().apply {
-                    usersById[id] = this
-                }
-            }
+            usersById.fetch(id) { adminKeycloakRealmUsers.get(id.toString()).toRepresentation().toUserProfile() }
         }
     }
 
     fun findUserByUsername(username: String): Result<KeyCloakUserProfile> {
         return runCatching {
-            usersByUsername[username] ?: run {
-                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUserProfile() }.first().apply {
-                    usersByUsername[username] = this
-                }
+            usersByUsername.fetch(username) {
+                adminKeycloakRealmUsers.searchByUsername(username, true).map { it.toUserProfile() }.single()
             }
         }
     }
@@ -90,7 +85,9 @@ class KeycloakService(
                     }
                 )
             }
-            user.update(userRepresentation)
+            user.update(userRepresentation).apply {
+                usersById[userId] = userRepresentation.toUserProfile()
+            }
         }
     }
 
