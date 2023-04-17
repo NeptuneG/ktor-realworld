@@ -39,6 +39,7 @@ out/
 .fleet/
 
 /src/main/resources/config.yaml
+/src/test/resources/config.test.yaml
 /flyway/conf/flyway.conf
 .env
 

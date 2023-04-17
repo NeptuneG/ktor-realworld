@@ -16,10 +16,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object TestDatabase {
     private val dataSource = HikariDataSource(
         HikariConfig().apply {
-            jdbcUrl = "jdbc:postgresql://0.0.0.0:5432/realworld_test"
-            username = "admin"
-            password = "password"
-            driverClassName = "org.postgresql.Driver"
+            jdbcUrl = testConfig.database.jdbcUrl
+            username = testConfig.database.username
+            password = testConfig.database.password
+            driverClassName = testConfig.database.driverClassName
         }
     )
 

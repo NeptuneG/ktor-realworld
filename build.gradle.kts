@@ -14,6 +14,7 @@ object versions {
     const val kotest = "5.5.5"
     const val mockk = "1.13.4"
     const val flyway = "9.16.3"
+    const val faker = "1.14.0"
 }
 
 plugins {
@@ -65,6 +66,7 @@ dependencies {
 
     implementation("org.postgresql:postgresql:${versions.postgres}")
     testImplementation("org.flywaydb:flyway-core:${versions.flyway}")
+    testImplementation("io.github.serpro69:kotlin-faker:${versions.faker}")
 
     implementation("org.jetbrains.exposed:exposed-core:${versions.exposed}")
     implementation("org.jetbrains.exposed:exposed-dao:${versions.exposed}")
