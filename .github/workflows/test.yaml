@@ -2,6 +2,9 @@ name: Run Test Suite
 
 on: push
 
+permissions:
+  checks: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -30,6 +33,5 @@ jobs:
         if: success() || failure()
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
-          github_token: ${{ secrets.token }}
       - name: API tests
         run: ./gradlew run & APIURL=http://localhost:8000/api ./spec/run-api-tests.sh
