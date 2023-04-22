@@ -6,9 +6,7 @@ import com.neptuneg.domain.logics.UserRepository
 import com.neptuneg.infrastructure.RepositorySpec
 import com.neptuneg.infrastructure.factories.ArticleFactory
 import com.neptuneg.infrastructure.factories.faker
-import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.result.shouldBeSuccess
 import io.mockk.every
 import io.mockk.mockk
 
@@ -19,10 +17,7 @@ class ArticleRepositoryImplTest : RepositorySpec({
                 val testee = ArticleRepositoryImpl(mockk())
                 test("returns empty") {
                     val result = testee.search(ArticleRepository.SearchParam(tag = "foobar"))
-                    result.isSuccess.shouldBeTrue()
-                    result.onSuccess {
-                        it.shouldBeEmpty()
-                    }
+                    result.shouldBeSuccess(emptyList())
                 }
             }
 
@@ -45,10 +40,7 @@ class ArticleRepositoryImplTest : RepositorySpec({
                 test("returns the articles with the specified tag") {
                     val expected = articlesWithTheTag.sortedByDescending { article -> article.updatedAt }
                     val result = testee.search(ArticleRepository.SearchParam(tag = tag))
-                    result.isSuccess.shouldBeTrue()
-                    result.onSuccess {
-                        it.shouldContainExactly(expected)
-                    }
+                    result.shouldBeSuccess(expected)
                 }
             }
         }
