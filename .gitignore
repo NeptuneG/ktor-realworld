@@ -38,8 +38,6 @@ out/
 ### Fleet ###
 .fleet/
 
-/src/main/resources/config.yaml
-/flyway/conf/flyway.conf
 .env
 
 exported-keycloak-realm

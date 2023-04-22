@@ -1,33 +1,48 @@
 package com.neptuneg.adaptor.database.gateway.repositories
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
-import java.time.Instant
-import kotlin.random.Random
-import kotlin.random.nextUInt
+import com.neptuneg.domain.entities.Article
+import com.neptuneg.domain.logics.ArticleRepository
+import com.neptuneg.domain.logics.UserRepository
+import com.neptuneg.infrastructure.RepositorySpec
+import com.neptuneg.infrastructure.factories.ArticleFactory
+import com.neptuneg.infrastructure.factories.faker
+import io.kotest.matchers.result.shouldBeSuccess
+import io.mockk.every
+import io.mockk.mockk
 
-class ArticleRepositoryImplTest : FunSpec({
-    context("coroutine") {
-        test("parallel map") {
-            fun plusOne(a: Int) = (a + 1)
-            val random = Random(Instant.now().toEpochMilli())
-            (1..10)
-                .toList()
-                .map {
-                    async {
-                        val sleep = (random.nextUInt() % 10u).apply {
-                            delay((this * 1000u).toLong())
-                        }
-                        plusOne(it).apply {
-                            println("slept $sleep second and get $this")
+class ArticleRepositoryImplTest : RepositorySpec({
+    context("search") {
+        context("when searching by tag") {
+            context("when there is no article with the specified tag") {
+                val testee = ArticleRepositoryImpl(mockk())
+                test("returns empty") {
+                    val result = testee.search(ArticleRepository.SearchParam(tag = "foobar"))
+                    result.shouldBeSuccess(emptyList())
+                }
+            }
+
+            context("when there are articles with the specified tag") {
+                val tag = faker.artist.unique.names()
+                val anotherTag = faker.artist.unique.names()
+                val articlesWithTheTag = mutableListOf<Article>().apply {
+                    repeat(3) { add(ArticleFactory.create(tags = listOf(tag))) }
+                }
+                ArticleFactory.create(tags = listOf(anotherTag))
+
+                val testee = ArticleRepositoryImpl(
+                    mockk<UserRepository>().apply {
+                        articlesWithTheTag.forEach {
+                            every { find(it.author.id) } returns Result.success(it.author)
                         }
                     }
+                )
+
+                test("returns the articles with the specified tag") {
+                    val expected = articlesWithTheTag.sortedByDescending { article -> article.updatedAt }
+                    val result = testee.search(ArticleRepository.SearchParam(tag = tag))
+                    result.shouldBeSuccess(expected)
                 }
-                .awaitAll()
-                .shouldContainExactly((2..11).toList())
+            }
         }
     }
 })

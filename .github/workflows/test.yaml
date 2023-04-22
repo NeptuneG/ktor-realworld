@@ -2,17 +2,15 @@ name: Run Test Suite
 
 on: push
 
+permissions:
+  checks: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-      - name: Setup config
-        run: |
-          cp .github/workflows/configs/config.yaml src/main/resources/config.yaml
-          cp .github/workflows/configs/flyway.conf flyway/conf/flyway.conf
-          cp .github/workflows/configs/logback-test.xml src/main/resources/logback-test.xml
       - name: Start containers
         run: docker-compose up -d --build
       - name: Set up JDK 17
@@ -22,7 +20,12 @@ jobs:
           distribution: 'corretto'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Execute Gradle test
-        run: ./gradlew test
+      - name: Build and Run Tests
+        run: ./gradlew build
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
       - name: API tests
         run: ./gradlew run & APIURL=http://localhost:8000/api ./spec/run-api-tests.sh
