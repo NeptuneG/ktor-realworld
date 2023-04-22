@@ -2,6 +2,7 @@ package com.neptuneg.adaptor.web
 
 import com.neptuneg.Server
 import com.neptuneg.adaptor.web.utils.installAuthentication
+import com.neptuneg.adaptor.web.utils.installCORS
 import com.neptuneg.adaptor.web.utils.installCallLogging
 import com.neptuneg.adaptor.web.utils.installContentNegotiation
 import com.neptuneg.adaptor.web.utils.installErrorHandler
@@ -15,6 +16,7 @@ class Ktor(
 ) : Server {
     override fun serve() {
         embeddedServer(Netty, port = serverConfig.port) {
+            installCORS()
             installCallLogging()
             installContentNegotiation()
             installAuthentication(serverConfig.keycloak)

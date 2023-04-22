@@ -46,6 +46,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:${versions.ktor}")
     implementation("io.ktor:ktor-client-apache:${versions.ktor}")
     implementation("io.ktor:ktor-server-sessions:${versions.ktor}")
+    implementation("io.ktor:ktor-server-cors:${versions.ktor}")
     testImplementation("io.ktor:ktor-server-tests-jvm:${versions.ktor}")
 
     testImplementation("io.kotest:kotest-runner-junit5:${versions.kotest}")
