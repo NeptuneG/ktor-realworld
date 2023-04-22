@@ -4,7 +4,7 @@ server:
     host: "http://0.0.0.0:8080"
     realm: "real-world"
     client_id: "sample-app"
-    client_secret: "sample-app-secret"
+    client_secret: "IgXvWjtlol2wwwyhVle44VpAvn3phXK1"
     admin_username: "admin"
     admin_password: "admin"
     redirect_uri: ""

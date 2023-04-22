@@ -11,12 +11,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Setup config
-        run: |
-          cp .github/workflows/configs/config.yaml src/main/resources/config.yaml
-          cp .github/workflows/configs/config.test.yaml src/test/resources/config.test.yaml
-          cp .github/workflows/configs/flyway.conf flyway/conf/flyway.conf
-          cp .github/workflows/configs/logback-test.xml src/main/resources/logback-test.xml
       - name: Start containers
         run: docker-compose up -d --build
       - name: Set up JDK 17
