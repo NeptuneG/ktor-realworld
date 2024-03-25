@@ -20,7 +20,7 @@ object versions {
 plugins {
     kotlin("jvm") version "1.9.0"
     id("io.ktor.plugin") version "2.3.3"
-    id("io.gitlab.arturbosch.detekt") version "1.23.1"
+    id("io.gitlab.arturbosch.detekt") version "1.23.6"
     id("org.openapi.generator") version "6.6.0"
 }
 
