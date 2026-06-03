@@ -13,7 +13,7 @@ object versions {
     const val okhttp = "4.10.0"
     const val kotest = "5.5.5"
     const val mockk = "1.13.4"
-    const val flyway = "9.16.3"
+    const val flyway = "9.22.3"
     const val faker = "1.14.0"
 }
 
