@@ -1,7 +1,7 @@
 object versions {
     const val ktor = "2.2.3"
     const val kotlin = "1.8.10"
-    const val logback = "1.2.11"
+    const val logback = "1.6.3"
     const val postgres = "42.5.1"
     const val exposed = "0.41.1"
     const val koin = "3.3.3"
