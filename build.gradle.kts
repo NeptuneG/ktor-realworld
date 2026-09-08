@@ -7,7 +7,7 @@ object versions {
     const val koin = "3.3.3"
     const val hoplite = "2.7.2"
     const val hikariCP = "5.0.1"
-    const val auth0Jwt = "4.3.0"
+    const val auth0Jwt = "4.6.1"
     const val keycloak = "21.0.1"
     const val moshi = "1.13.0"
     const val okhttp = "4.10.0"
